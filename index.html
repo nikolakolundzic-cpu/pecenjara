@@ -518,6 +518,11 @@ body.locked .wrap{display:none}
 .pinrow2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
 .pinrow2 .field{text-align:center; letter-spacing:.3em}
 @media (max-width:380px){ .pinrow2{grid-template-columns:1fr} }
+/* nova verzija */
+.novaverzija{position:fixed; left:0; right:0; bottom:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background:var(--ink); color:var(--bg); font-weight:600}
+.novaverzija button{height:44px; padding:0 18px; border:0; border-radius:8px; background:var(--ember); color:var(--on-ember); font-weight:700; font-size:16px}
 /* štampa */
 #printArea{display:none}
 @media print{

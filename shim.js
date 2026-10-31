@@ -254,7 +254,32 @@
   auth.onAuthStateChanged(onUser);
 
   /* ---------- rad bez interneta: čuva aplikaciju na telefonu ---------- */
+  /* Nova verzija: telefon provjerava pri svakom vraćanju u aplikaciju. Kad stigne,
+     aplikacija se sama osvježi čim se skloni sa ekrana, ili odmah na dugme „Osvježi“. */
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+    var imaNovu = false;
+    function ponudiNovu(){
+      if (imaNovu) return; imaNovu = true;
+      var b = document.createElement('div');
+      b.className = 'novaverzija';
+      b.innerHTML = '<span>Stigla je nova verzija aplikacije.</span><button type="button">Osvježi</button>';
+      b.querySelector('button').addEventListener('click', function(){ location.reload(); });
+      document.body.appendChild(b);
+    }
+    window.addEventListener('load', function(){
+      var bioKontroler = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if (!bioKontroler) { bioKontroler = true; return; }
+        if (document.visibilityState === 'hidden' || !started) location.reload(); else ponudiNovu();
+      });
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg){
+        function provjeri(){ try { reg.update(); } catch(e){} }
+        document.addEventListener('visibilitychange', function(){
+          if (document.visibilityState === 'visible') provjeri();
+          else if (imaNovu) location.reload();
+        });
+        setInterval(provjeri, 15 * 60 * 1000);
+      }).catch(function(){});
+    });
   }
 })();
