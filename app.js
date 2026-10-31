@@ -450,8 +450,8 @@
       acts = '<div class="acts">' +
         '<button class="status" type="button" data-act="toggle" aria-pressed="' + done + '">' + (done ? '✓ Preuzeto' : 'Označi preuzeto') + '</button>' +
         (kidMode(o) === 'ne' ? '' : '<button class="status" type="button" data-act="kid" aria-pressed="' + d + '">' + (d ? '✓ Iskidano' : 'Označi iskidano') + '</button>') +
-        (pruneAllowed() ? '<button class="ghost" type="button" data-act="edit">Izmijeni</button>' +
-        '<button class="ghost danger' + (conf ? ' confirm' : '') + '" type="button" data-act="del">' + (conf ? 'Potvrdi brisanje' : 'Obriši') + '</button>' : '') +
+        (pruneAllowed() ? '<span class="acts-r"><button class="ghost" type="button" data-act="edit">Izmijeni</button>' +
+        '<button class="ghost danger' + (conf ? ' confirm' : '') + '" type="button" data-act="del">' + (conf ? 'Potvrdi brisanje' : 'Obriši') + '</button></span>' : '') +
       '</div>';
     }
     return '<li class="row t-' + esc(o.vrsta) + (done ? ' done' : '') + '" data-id="' + esc(o.id) + '">' +
