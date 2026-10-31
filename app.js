@@ -194,10 +194,13 @@
   }
 
   /* ---------- derived ---------- */
+  var dayKey = null, dayVal = [];
   function dayOrders(){
     var c = curSession();
     if (!c) return [];
-    return orders.filter(function(o){ return (o.sesija || '_') === c.id; });
+    var k = dataVer + '|' + c.id;
+    if (k !== dayKey) { dayKey = k; dayVal = orders.filter(function(o){ return (o.sesija || '_') === c.id; }); }
+    return dayVal;
   }
   function sortRows(a, b){
     if (a.vrsta !== b.vrsta) return (ORDER[a.vrsta] || 0) - (ORDER[b.vrsta] || 0);
@@ -463,7 +466,13 @@
     $('opisWrap').hidden = !isD;
   }
 
+  var renderPending = false;
   function render(){
+    if (renderPending) return;
+    renderPending = true;
+    (window.requestAnimationFrame || setTimeout)(function(){ renderPending = false; renderNow(); });
+  }
+  function renderNow(){
     var day = dayOrders();
     renderStaff();
     renderShell(day);
@@ -1062,12 +1071,24 @@
     var name = 'spisak-' + String(cur.ime).toLowerCase().replace(/[^a-z0-9čćžšđ]+/g, '-').replace(/^-+|-+$/g, '') + '.pdf';
     return new File([pdf.output('blob')], name, { type: 'application/pdf' });
   }
+  var pdfLoading = null;
+  function ucitajPdf(){
+    if (window.jspdf) return Promise.resolve();
+    if (!pdfLoading) pdfLoading = new Promise(function(ok, no){
+      var sc = document.createElement('script'); sc.src = 'vendor/jspdf.umd.min.js'; sc.async = true;
+      sc.onload = function(){ ok(); }; sc.onerror = function(){ pdfLoading = null; no(); };
+      document.head.appendChild(sc);
+    });
+    return pdfLoading;
+  }
+  setTimeout(function(){ ucitajPdf().catch(function(){}); }, 2500);
   function jeIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
   function mozeDijeliti(f){ try { return !!(f && navigator.canShare && navigator.canShare({ files: [f] })); } catch(e){ return false; } }
   /* Štampa: na iPhoneu preko menija za dijeljenje (tamo je „Štampaj“), drugdje običan prozor za štampu. */
   function doPrint(){
     if (!curSession()) { csvMsg('Nema događaja za štampu.', true); return; }
     if (jeIOS()) {
+      if (!window.jspdf) { csvMsg('Pripremam štampu… pritisni dugme ponovo.'); ucitajPdf().then(function(){ csvMsg('Spremno. Pritisni „Štampaj spisak“.'); }, function(){ csvMsg('Štampa nije spremna. Provjeri internet.', true); }); return; }
       var f = spisakPdf();
       if (f && mozeDijeliti(f)) {
         csvMsg('U meniju koji se otvori izaberi „Štampaj“ (Print).');
@@ -1082,6 +1103,11 @@
   }
   $('printBtn').addEventListener('click', doPrint);
   $('printDlBtn').addEventListener('click', async function(){
+    if (!window.jspdf) {
+      csvMsg('Pripremam PDF…');
+      try { await ucitajPdf(); } catch(e){ csvMsg('PDF nije spreman. Provjeri internet.', true); return; }
+      if (jeIOS()) { csvMsg('Spremno. Pritisni „Sačuvaj spisak (PDF)“ ponovo.'); return; }
+    }
     var f = spisakPdf();
     if (!f) { csvMsg('PDF nije napravljen. Provjeri internet pa osvježi aplikaciju.', true); return; }
     if (jeIOS() && mozeDijeliti(f)) {
@@ -1304,7 +1330,14 @@
     if (orders.some(function(o){ return !o.sesija; })) arr.unshift({ id: '_', ime: 'Bez događaja', kreirano: 0, virtual: true });
     return arr;
   }
+  var curKey = null, curVal = null;
   function curSession(){
+    var k = dataVer + '|' + (S.sesija || '');
+    if (k === curKey) return curVal;
+    curKey = k; curVal = curSessionCalc();
+    return curVal;
+  }
+  function curSessionCalc(){
     var all = sessionsAll();
     if (!all.length) return null;
     if (S.sesija) {
