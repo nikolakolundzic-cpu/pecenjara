@@ -1,0 +1,5 @@
+node_modules/
+*.log
+podaci-*.json
+pecenje-kopija-*.json
+firestore-debug.log

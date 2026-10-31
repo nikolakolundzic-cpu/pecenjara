@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function prijavljen() { return request.auth != null; }
+    function vlasnikPostoji() { return exists(/databases/$(database)/documents/config/vlasnik); }
+    function jeVlasnik() {
+      return prijavljen() && vlasnikPostoji()
+        && get(/databases/$(database)/documents/config/vlasnik).data.uid == request.auth.uid;
+    }
+    function jeRadnik() {
+      return prijavljen() && exists(/databases/$(database)/documents/osoblje/$(request.auth.uid));
+    }
+
+    // Prvo pokretanje: prvi prijavljeni postavlja sebe za vlasnika, kasnije se ne može promijeniti.
+    match /config/vlasnik {
+      allow read: if true;
+      allow create: if prijavljen() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Imena radnika vide se na ekranu za prijavu. Mijenja ih samo vlasnik.
+    match /osoblje/{uid} {
+      allow read: if true;
+      allow create, update, delete: if jeVlasnik();
+    }
+
+    // Pečenja: radnici upisuju i označavaju preuzeto/iskidano/mjesto.
+    // Izmjenu podataka (broj, ime, telefon...) i brisanje radi samo vlasnik.
+    match /porudzbine/{id} {
+      allow read, create: if jeRadnik();
+      allow update: if jeVlasnik() || (jeRadnik() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+        ['vrsta', 'broj', 'ime', 'telefon', 'napomena', 'opis', 'sesija', 'kidanje', 'zaKidanje',
+         'dolazi', 'dolaziDatum', 'kreirano', 'upisao', 'upisaoIme', 'datum', 'grupa']));
+      allow delete: if jeVlasnik();
+    }
+
+    match /istorija/{id} {
+      allow read, create, update: if jeRadnik();
+      allow delete: if jeVlasnik();
+    }
+    match /sesije/{id} {
+      allow read, create, update: if jeRadnik();
+      allow delete: if jeVlasnik();
+    }
+    match /podesavanja/{id} {
+      allow read, write: if jeRadnik();
+    }
+    match /brojevi/{id} {
+      allow read, write: if jeRadnik();
+    }
+  }
+}

@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Evidencija pečenja</title>
+<meta name="theme-color" content="#c0401a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pečenje">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{min-height:100%}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none !important}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow column built for a phone at the counter: title, two page tabs (Upis / Kidanje), shared date bar, then the page itself. Rows are ticket-style: number stub on the left, customer in the middle, actions on the right. */
+:root{
+  --bg:#ecebe8;
+  --surface:#faf9f7;
+  --field:#ffffff;
+  --ink:#231f1c;
+  --muted:#6a635c;
+  --line:#d6d2cb;
+  --ember:#c0401a;
+  --on-ember:#ffffff;
+  --jagnje:#566535;
+  --prase:#a84a63;
+  --drugo:#8a5a12;
+  --ok:#2f6b3c;
+  --danger:#a3261b;
+  --f-display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --f-body:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161311; --surface:#201c19; --field:#2a2521; --ink:#f2ede7; --muted:#a79e95; --line:#38322d;
+    --ember:#f0714a; --on-ember:#1d0e07; --jagnje:#b2c47c; --prase:#eb97ae; --drugo:#e0b45c; --ok:#86c493; --danger:#f08a7e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161311; --surface:#201c19; --field:#2a2521; --ink:#f2ede7; --muted:#a79e95; --line:#38322d;
+  --ember:#f0714a; --on-ember:#1d0e07; --jagnje:#b2c47c; --prase:#eb97ae; --drugo:#e0b45c; --ok:#86c493; --danger:#f08a7e;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--f-body); font-size:16px; line-height:1.45;
+  padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap{max-width:720px; margin:0 auto; display:flex; flex-direction:column; gap:16px; min-width:0}
+[hidden]{display:none !important}
+.view{display:flex; flex-direction:column; gap:16px; min-width:0}
+h1{font-family:var(--f-display); font-weight:700; font-size:36px; line-height:1; margin:0; letter-spacing:.01em; text-transform:uppercase; text-wrap:balance}
+button,input{font:inherit; color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--ember); outline-offset:2px}
+
+/* tabs */
+.tabs{display:grid; grid-template-columns:repeat(2,1fr); border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--surface)}
+.tab{
+  display:flex; align-items:center; justify-content:center; gap:10px; height:50px; text-decoration:none; color:var(--ink);
+  font-family:var(--f-display); font-weight:600; font-size:23px; letter-spacing:.05em; text-transform:uppercase;
+}
+.tab + .tab{border-left:1px solid var(--line)}
+.tab[aria-current="page"]{background:var(--ink); color:var(--bg)}
+.tab .n{
+  min-width:26px; height:26px; padding:0 7px; border-radius:13px; display:grid; place-items:center;
+  background:var(--ember); color:var(--on-ember); font-size:16px; letter-spacing:0; font-variant-numeric:tabular-nums;
+}
+
+
+/* tally */
+.tally{display:grid; grid-template-columns:repeat(3,1fr); background:var(--surface); border:1px solid var(--line); border-radius:6px; margin:0}
+.tally.four{grid-template-columns:repeat(4,1fr)}
+.tally div{padding:10px 12px; display:flex; flex-direction:column; gap:2px; min-width:0}
+.tally.four div{padding:10px 8px 10px 12px}
+.tally div + div{border-left:1px solid var(--line)}
+.tally dt{font-size:13px; color:var(--muted); font-weight:500}
+.tally dd{margin:auto 0 0; font-family:var(--f-display); font-weight:700; font-size:34px; line-height:1; font-variant-numeric:tabular-nums}
+.tally .c-j dd{color:var(--jagnje)} .tally .c-p dd{color:var(--prase)} .tally .c-d dd{color:var(--drugo)}
+.tally .c-w dd{color:var(--ember)} .tally .c-ok dd{color:var(--ok)} .tally .c-r dd{color:var(--danger)}
+
+/* form */
+form{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:16px; display:grid; gap:14px; grid-template-columns:1fr 1fr; min-width:0}
+form .full{grid-column:1 / -1}
+fieldset{border:0; padding:0; margin:0; min-width:0}
+legend,label.l{display:block; font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:0; margin-bottom:6px}
+.seg{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.seg.three{grid-template-columns:repeat(3,1fr)}
+.seg input{position:absolute; opacity:0; pointer-events:none}
+.seg label{
+  display:grid; place-items:center; height:52px; border:2px solid var(--line); border-radius:6px; background:var(--field);
+  font-family:var(--f-display); font-weight:700; font-size:24px; letter-spacing:.04em; text-transform:uppercase; cursor:pointer;
+  text-align:center; min-width:0;
+}
+.seg.three label{font-size:21px; padding:0 4px}
+.seg.sm label{height:46px; font-size:20px}
+.seg.sm.three label{height:56px; font-size:15px; line-height:1.1; letter-spacing:.03em; padding:4px}
+.seg input:checked + label.j{border-color:var(--jagnje); color:var(--jagnje); background:color-mix(in srgb, var(--jagnje) 14%, var(--field))}
+.seg input:checked + label.p{border-color:var(--prase); color:var(--prase); background:color-mix(in srgb, var(--prase) 14%, var(--field))}
+.seg input:checked + label.o{border-color:var(--drugo); color:var(--drugo); background:color-mix(in srgb, var(--drugo) 14%, var(--field))}
+.seg label.k{color:var(--ok)}
+.seg label.n{color:var(--danger)}
+.seg input:checked + label.k{border-color:var(--ok); color:var(--ok); background:color-mix(in srgb, var(--ok) 14%, var(--field))}
+.seg input:checked + label.n{border-color:var(--danger); color:var(--danger); background:color-mix(in srgb, var(--danger) 12%, var(--field))}
+.seg input:focus-visible + label{outline:3px solid var(--ember); outline-offset:2px}
+.field{
+  width:100%; height:48px; padding:0 12px; background:var(--field); border:1px solid var(--line); border-radius:6px; min-width:0;
+}
+input.num{font-family:var(--f-display); font-weight:700; font-size:26px; font-variant-numeric:tabular-nums}
+.actions{display:flex; gap:8px; flex-wrap:wrap}
+.btn{
+  height:50px; padding:0 22px; border-radius:6px; border:1px solid transparent; font-weight:600; font-size:17px;
+  background:var(--ember); color:var(--on-ember); flex:1 1 160px;
+}
+.btn.sec{background:transparent; border-color:var(--line); color:var(--ink); flex:0 1 auto}
+.msg{min-height:20px; margin:0; font-size:14px; color:var(--muted)}
+.msg.err{color:var(--danger); font-weight:500}
+
+/* search */
+.search .field{height:56px; font-size:20px; padding-left:16px}
+.qrow{display:flex; gap:8px}
+.qrow .field{flex:1; min-width:0}
+.qwrap{position:relative; flex:1; min-width:0; display:flex}
+.qwrap .field{padding-right:56px}
+#q::-webkit-search-cancel-button{-webkit-appearance:none; display:none}
+.qx{position:absolute; right:6px; top:50%; transform:translateY(-50%); width:44px; height:44px; display:grid; place-items:center; padding:0; border:0; border-radius:50%; background:var(--line); color:var(--ink)}
+.qx svg{width:20px; height:20px}
+.qx:active{background:var(--muted); color:var(--surface)}
+.qwrap input:placeholder-shown + .qx{display:none}
+.qkb{flex:0 0 64px; height:56px; border-radius:12px; border:1px solid var(--line, #888); background:transparent; color:inherit; font:700 18px/1 'Barlow Condensed',sans-serif; cursor:pointer}
+.search label.l{margin-bottom:6px}
+
+/* filters */
+.filters{display:flex; gap:8px; flex-wrap:wrap}
+.filterwrap{display:flex; gap:8px; flex-wrap:wrap}
+.filterwrap > .filters{display:contents}
+.chip{height:40px; padding:0 14px; border:1px solid var(--line); background:var(--surface); border-radius:20px; font-weight:500; display:inline-flex; align-items:center; gap:6px}
+.chip b{font-variant-numeric:tabular-nums; font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+
+/* rows */
+ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px}
+.row{
+  background:var(--surface); border:1px solid var(--line); border-radius:6px; overflow:hidden; min-width:0;
+  display:grid; grid-template-columns:58px minmax(0,1fr) auto; grid-template-areas:"stub who copy" "stub loc loc" "stub when when" "acts acts acts";
+}
+.stub{
+  grid-area:stub; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px 3px; gap:0;
+  border-right:2px dashed var(--line);
+}
+.t-jagnje .stub{background:color-mix(in srgb, var(--jagnje) 14%, var(--surface))}
+.t-prase .stub{background:color-mix(in srgb, var(--prase) 14%, var(--surface))}
+.t-drugo .stub{background:color-mix(in srgb, var(--drugo) 14%, var(--surface))}
+.stub-l{font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase}
+.t-jagnje .stub-l{color:var(--jagnje)} .t-prase .stub-l{color:var(--prase)} .t-drugo .stub-l{color:var(--drugo)}
+.stub-n{font-family:var(--f-display); font-weight:700; font-size:30px; line-height:1; font-variant-numeric:tabular-nums}
+.who{grid-area:who; padding:6px 10px; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:1px}
+.nm{display:flex; align-items:center; gap:4px 10px; flex-wrap:wrap}
+.name{margin:0; font-size:17px; font-weight:600; line-height:1.2; overflow-wrap:anywhere}
+.tag{
+  display:inline-block; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+  padding:0 5px; border-radius:4px; border:1px solid currentColor; white-space:nowrap;
+}
+.tag.k{color:var(--ember)} .tag.ok{color:var(--ok)} .tag.d{color:var(--ink)}
+.tag.r{color:var(--danger); border-width:2px; padding:0 6px; font-weight:700}
+.note{margin:2px 0; color:var(--ink); font-size:15px; font-weight:600; border-left:3px solid var(--ember); padding-left:7px; overflow-wrap:anywhere}
+.note strong{color:var(--ink); font-weight:600}
+.when{margin:0; color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums}
+.when.ok{color:var(--ok); font-weight:500}
+.me{margin:0; font-size:14px; color:var(--muted)}
+.notice{margin:0; padding:10px 14px; background:var(--surface); border:1px dashed var(--muted); border-radius:6px; font-size:14px}
+.copy{grid-area:copy; align-self:start; display:flex; flex-direction:column; align-items:stretch; gap:5px; padding:6px 8px 0 0}
+.cpb{height:30px; min-width:44px; max-width:130px; padding:0 8px; border:1px solid var(--line); border-radius:6px; background:var(--field); color:var(--ink); font-size:11.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left}
+.cpb:active{background:var(--line)}
+.row > .loc{grid-area:loc; margin:0; padding:2px 10px 4px}
+.whenrow{grid-area:when; padding:0 10px 6px; display:flex; flex-direction:column; gap:1px; min-width:0}
+.whenrow:empty{display:none}
+.acts{grid-area:acts; display:flex; gap:6px; padding:0 8px 6px; flex-wrap:wrap}
+.status{
+  flex:0 1 auto; min-width:0; height:32px; padding:0 8px; border-radius:6px; font-weight:600; white-space:nowrap; font-size:13px; line-height:1;
+  border:2px solid var(--ember); color:var(--ember); background:transparent;
+}
+.status[aria-pressed="true"]{border-color:var(--ok); color:var(--ok); background:color-mix(in srgb, var(--ok) 12%, var(--surface))}
+.status.big{height:52px; font-size:18px}
+.ghost{height:32px; padding:0 8px; font-size:13px; border-radius:6px; border:1px solid var(--line); background:transparent; font-weight:500}
+.ghost.big{height:52px; font-size:17px; font-weight:600; flex:1 1 140px}
+.ghost.danger{color:var(--danger)}
+.loc{display:flex; gap:4px; align-items:center; flex-wrap:wrap; margin-top:4px}
+.loc .l{font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-right:2px}
+.loc[role="group"]{flex-wrap:wrap}
+.loc[role="group"] .locb{flex:0 0 auto; min-width:0; padding:0 7px; justify-content:center; overflow:visible; text-overflow:clip; font-size:12px}
+.loc[role="group"] .l{flex:0 0 auto}
+@media (max-width:560px){ .loc[role="group"] .l{display:none} }
+.locb{height:26px; padding:0 8px; font-size:12px; border-radius:5px; border:1px solid var(--line); background:transparent; font-weight:500; white-space:nowrap}
+.locb[aria-pressed="true"]{border-color:var(--ink); background:var(--ink); color:var(--surface); font-weight:600}
+.ghost.confirm{background:var(--danger); border-color:var(--danger); color:var(--bg); font-weight:600}
+.row.done .name{color:var(--muted)}
+.row.done .stub-n{color:var(--muted)}
+.empty{
+  background:var(--surface); border:1px dashed var(--line); border-radius:6px; padding:28px 16px; text-align:center; color:var(--muted);
+}
+.empty strong{display:block; font-family:var(--f-display); font-size:24px; font-weight:600; color:var(--ink); margin-bottom:4px; overflow-wrap:anywhere}
+.undo{
+  display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap;
+  background:var(--surface); border:1px solid var(--ok); border-radius:6px; padding:8px 8px 8px 14px;
+}
+.undo span{min-width:0; overflow-wrap:anywhere}
+.foot{font-size:13px; color:var(--muted); margin:0}
+
+/* ko radi */
+.staff{display:flex; flex-direction:column; gap:8px; padding:10px 12px; background:var(--surface); border:1px solid var(--line); border-radius:6px}
+.staff.need{border:2px solid var(--ember); padding:9px 11px}
+.staff .l{font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.staff .chips{display:flex; flex-wrap:wrap; gap:8px}
+.staff .chip{height:44px; padding:0 18px; font-size:17px}
+.staffadmin{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 14px; display:flex; flex-direction:column; gap:10px}
+.staffadmin[open]{gap:10px}
+.hrow{display:flex; flex-direction:column; gap:1px; padding:5px 0; border-top:1px solid var(--line); font-size:14px}
+.hrow small{color:var(--muted); font-size:12px}
+.hrow em{font-style:normal; font-weight:600}
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:22px; max-width:calc(100% - 32px); z-index:50; background:var(--surface); color:var(--ok); border:2px solid var(--ok); border-radius:8px; padding:12px 18px; font-weight:700; font-size:17px; text-align:center; box-shadow:0 6px 24px rgba(0,0,0,.28); z-index:70}
+.titlerow{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.themebtn{width:40px; height:40px; padding:0; font-size:20px; line-height:1; flex:0 0 auto}
+.hrow .ghost{align-self:flex-start; margin-top:3px}
+.sumgrid{display:grid; grid-template-columns:1fr auto; gap:4px 12px; margin:0}
+.sumgrid dt{color:var(--muted)}
+.sumgrid dd{margin:0; font-weight:700; text-align:right; font-variant-numeric:tabular-nums}
+.sumgrid .sep{grid-column:1 / -1; border-top:1px solid var(--line); margin:2px 0}
+.brojime{display:grid; grid-template-columns:110px minmax(0,1fr); gap:10px}
+.extrawrap{display:flex; flex-direction:column; gap:8px; align-items:flex-start}
+#extras{display:flex; flex-direction:column; gap:8px; width:100%}
+.xrow{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+.xrow .xv{flex:1 1 110px; width:auto}
+.xrow .xb{flex:1 1 90px; width:auto}
+.xrow .xo{flex:2 1 150px; width:auto}
+.xrow .xdel{flex:0 0 auto}
+.staffadmin summary{cursor:pointer; font-family:var(--f-display); font-weight:600; font-size:20px; letter-spacing:.05em; text-transform:uppercase}
+.staffadmin > *:not(summary){margin-top:10px}
+.srow{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; border-top:1px solid var(--line); font-size:17px}
+.staffform{display:flex; gap:8px; flex-wrap:wrap}
+.staffform .field{flex:1 1 200px}
+.staffform .btn{flex:0 0 auto}
+.pinbox{display:flex; flex-direction:column; gap:6px}
+.pinrow{display:flex; gap:8px; flex-wrap:wrap}
+.pinrow .field, .pinedit .field{flex:0 0 120px; width:120px; text-align:center; letter-spacing:.3em}
+.pinrow .btn{flex:1 1 auto; height:48px}
+.cur{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.curname{margin:0; font-size:16px}
+.staff{padding:3px 8px; gap:4px}
+.hdrrow{display:flex; flex-wrap:wrap; gap:8px; align-items:stretch}
+.hdrrow > .staff{flex:1 1 150px; min-width:0}
+.hdrrow:has(#staffCur[hidden]) > #staffBar{flex-basis:100%}
+.hdrrow > .staff .cur{justify-content:center; text-align:center; height:100%}
+.hdrrow > .staff .curacts{justify-content:center}
+.hdrrow > .staff .curacts .btn{display:inline-flex; align-items:center; justify-content:center; text-align:center}
+.staff .cur{gap:10px; flex-wrap:nowrap}
+.staff .curacts .btn{height:30px; padding:0 10px; font-size:13px}
+.curacts{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.curacts .btn{height:44px; flex:0 0 auto; padding:0 16px; font-size:16px}
+.ask{font-weight:600}
+.srow{flex-wrap:wrap}
+.sname{display:flex; flex-direction:column; min-width:0}
+.sname small{color:var(--muted); font-size:13px}
+.sbtns{display:flex; gap:8px; flex-wrap:wrap}
+.ghost[data-sact="big"][aria-pressed="true"]{border-color:var(--ok); color:var(--ok); font-weight:600}
+.pinedit{flex:1 1 100%; display:flex; gap:8px; flex-wrap:wrap; padding-bottom:6px}
+.pinedit .btn{height:46px; flex:0 0 auto; padding:0 16px; font-size:16px}
+
+/* sesije */
+a.sesstaff{
+  display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"l m go" "n n go"; align-items:baseline; gap:0 8px;
+  padding:7px 12px 8px 14px; text-decoration:none; color:inherit; text-align:left;
+  border:1px solid var(--line); border-left:5px solid var(--ember); border-radius:8px; background:var(--surface);
+}
+a.sesstaff[aria-current]{border-color:var(--ink); border-left-color:var(--ember); background:color-mix(in srgb, var(--ember) 7%, var(--surface))}
+.sesl{grid-area:l; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.sesn{grid-area:n; font-family:var(--f-display); font-weight:700; font-size:21px; line-height:1.1; letter-spacing:.01em; overflow-wrap:anywhere}
+.sesm{grid-area:m; min-width:0; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.sesgo{grid-area:go; align-self:center; font-size:26px; line-height:1; color:var(--muted)}
+html.big .sesn{font-size:25px}
+html.big .sesm{font-size:15px}
+.sescard{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:14px; display:flex; flex-direction:column; gap:10px}
+.sescard h2{margin:0; font-family:var(--f-display); font-weight:600; font-size:22px; letter-spacing:.04em; text-transform:uppercase}
+.sesitem{width:100%; text-align:left; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; align-items:center; padding:11px 12px 11px 14px; border:1px solid var(--line); border-left:5px solid var(--line); border-radius:8px; background:var(--field); color:var(--ink)}
+.sesitem.on{border-color:var(--ink); border-left-color:var(--ember); background:color-mix(in srgb, var(--ember) 7%, var(--field))}
+.sesitem .sin{font-family:var(--f-display); font-weight:700; font-size:22px; line-height:1.1; overflow-wrap:anywhere}
+.sesitem .sim{grid-column:1 / -1; font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
+.sesitem .sbad{justify-self:end; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:20px; background:var(--ember); color:var(--on-ember); white-space:nowrap}
+.sesitem .sbad.sel{background:transparent; color:var(--ink); border:1px solid var(--ink)}
+.sescnt{grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:6px}
+.sescnt span{font-size:13px; font-weight:600; padding:2px 8px; border-radius:20px; border:1px solid var(--line); background:var(--surface); font-variant-numeric:tabular-nums}
+.sescnt .j{color:var(--jagnje)} .sescnt .p{color:var(--prase)} .sescnt .d{color:var(--drugo)}
+.sesold{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.sesold span{min-width:0; overflow-wrap:anywhere}
+
+
+/* po satu dolaska */
+.hhead{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-top:10px; padding:0 2px; font-family:var(--f-display); font-weight:700; font-size:21px; letter-spacing:.04em; text-transform:uppercase}
+.hhead span + span{font-size:15px}
+.hhead.late{color:var(--danger)}
+.hhead.soon{color:var(--ember)}
+.hsum{padding:8px 12px; background:var(--surface); border:1px solid var(--line); border-radius:6px; font-size:15px}
+.hsum b{font-variant-numeric:tabular-nums}
+
+/* krupna slova: uključuju se za radnike označene u Osoblju */
+html.big body{font-size:18px}
+html.big h1{font-size:30px}
+html.big .tab{font-size:22px; height:56px; letter-spacing:.03em}
+html.big .curname{font-size:19px}
+html.big .tally dt{font-size:15px}
+html.big .tally dd{font-size:40px}
+html.big legend, html.big label.l{font-size:14px}
+html.big .field{height:54px; font-size:20px}
+html.big input.num{font-size:30px}
+html.big .seg label{height:58px}
+html.big .btn{height:56px; font-size:19px}
+html.big .search .field{height:60px; font-size:22px}
+html.big .chip{height:42px; font-size:17px; padding:0 14px}
+html.big .row{grid-template-columns:72px minmax(0,1fr) auto}
+html.big .stub-l{font-size:12px}
+html.big .stub-n{font-size:42px}
+html.big .who{padding:8px 12px; gap:3px}
+html.big .name{font-size:22px}
+html.big .tag{font-size:13px; padding:1px 6px}
+html.big .note{font-size:18px}
+html.big .when{font-size:15px}
+html.big .cpb{height:38px; font-size:15px; max-width:170px}
+html.big .copy{gap:7px}
+html.big .row .loc .locb{height:36px; font-size:15px; padding:0 9px}
+html.big .row > .loc{gap:6px}
+html.big .acts{gap:7px; padding:2px 10px 10px}
+html.big .status, html.big .ghost{height:42px; font-size:15px; padding:0 10px}
+html.big .msg{font-size:16px}
+html.big .hhead{font-size:24px}
+html.big .hsum{font-size:17px}
+@media (min-width:560px){ html.big .row{grid-template-columns:80px minmax(0,1fr) auto} }
+
+/* raniji kupci */
+.brojime{position:relative}
+.imewrap{min-width:0}
+.sugg{position:absolute; left:0; right:0; top:100%; z-index:30; margin-top:4px; gap:0; background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.22); max-height:320px; overflow:auto}
+.sugg li + li{border-top:1px solid var(--line)}
+.sugg button{width:100%; display:flex; flex-direction:column; gap:2px; padding:10px 12px; border:0; background:transparent; color:var(--ink); text-align:left}
+.sugg button:active, .sugg button:hover{background:color-mix(in srgb, var(--ok) 10%, var(--surface))}
+.sugg .sn{font-weight:600; font-size:17px; overflow-wrap:anywhere}
+.sugg .st{font-weight:500; color:var(--muted); font-size:15px; white-space:nowrap}
+.sugg .sm{font-size:13px; color:var(--muted)}
+.sugg .sh{padding:6px 12px; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--bg)}
+.sugg li.sgi{display:flex; align-items:stretch}
+.sugg .sgp{flex:1 1 auto; min-width:0}
+.sugg .sgx{flex:0 0 52px; width:auto; align-items:center; justify-content:center; padding:0; border-left:1px solid var(--line); color:var(--muted); font-size:18px; text-align:center}
+.sugg .sgx.arm{flex-basis:84px; background:var(--danger); color:var(--surface); font-size:13px; font-weight:700}
+html.big .sugg .sn{font-size:20px}
+html.big .sugg .sm{font-size:15px}
+
+/* po radniku */
+.wt{width:100%; border-collapse:collapse; font-size:16px}
+.wt th,.wt td{padding:7px 6px; border-bottom:1px solid var(--line); text-align:right; font-variant-numeric:tabular-nums}
+.wt th:first-child,.wt td:first-child{text-align:left}
+.wt th{font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+.wt td:first-child{font-weight:600; overflow-wrap:anywhere}
+.wt tr:last-child td{border-bottom:0}
+
+/* mjesta */
+.mjrow{display:flex; gap:8px; align-items:center; flex-wrap:nowrap; padding:8px 0; border-top:1px solid var(--line)}
+.mjrow .field{flex:1 1 auto; min-width:0; height:44px}
+.mjrow .ghost{flex:0 0 auto}
+.mjrow .ghost{height:44px; padding:0 12px; font-size:15px}
+
+/* dijalog: izbor kidača */
+.bconf{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+.bconf{position:fixed; inset:0; z-index:65; display:grid; place-items:center; padding:16px; background:rgba(0,0,0,.55)}
+.bcbox{width:min(100%, 440px); background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.bcwhat{margin:0; font-family:var(--f-display); font-weight:700; font-size:clamp(40px, 12vw, 64px); line-height:1; font-variant-numeric:tabular-nums}
+.bcname{margin:0; font-size:20px; font-weight:600; overflow-wrap:anywhere}
+.bcq{margin:4px 0 6px; font-size:19px}
+.kgrid{display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px}
+.kgrid .btn{flex:0 0 auto; height:64px; font-size:22px; padding:0 8px; background:var(--ok); color:var(--surface); overflow-wrap:anywhere; line-height:1.1}
+.kno{flex:0 0 auto; height:52px; margin-top:6px}
+
+@media (min-width:560px){
+  .row{grid-template-columns:62px minmax(0,1fr) auto; grid-template-areas:"stub who copy" "stub loc loc" "stub when when" "stub acts acts"; align-items:stretch}
+  .acts{padding:0 10px 8px; align-items:center; flex-wrap:wrap}
+  .status{flex:0 0 auto; min-width:0}
+  .status.big{flex:0 0 auto; min-width:200px}
+  .ghost.big{flex:0 0 auto}
+}
+@media (max-width:420px){
+  form{grid-template-columns:1fr}
+  h1{font-size:32px}
+  .tab{font-size:17px; gap:6px; letter-spacing:.03em}
+  .tab .n{min-width:22px; height:22px; font-size:14px; padding:0 5px}
+}
+@media (max-width:560px){
+  h1{font-size:26px}
+  .hdrrow > .staff{flex-basis:100%}
+  .seg.three label{font-size:18px; letter-spacing:.02em}
+  .seg.sm label{font-size:17px; letter-spacing:.02em}
+  .chip{height:34px; padding:0 11px; font-size:14px}
+  .filters,.filterwrap{gap:6px}
+  .acts{gap:4px; padding:0 6px 6px}
+  .status,.ghost{font-size:12px; padding:0 6px; height:30px}
+  .msg{min-height:0}
+  .msg:empty{display:none}
+  form{padding:12px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .chip,.btn,.status,.ghost,.tab,.cpb,.locb,.sesitem{transition:background-color .15s, border-color .15s, color .15s}
+}
+
+/* ===== završna obrada: jedan radijus, zaglavlje kao par kartica, uredna podešavanja ===== */
+:root{--r:10px}
+.tabs,.tally,form,.row,.sescard,.staffadmin,.staff,a.sesstaff,.empty,.notice,.hsum,.undo,.sesitem{border-radius:var(--r)}
+.hdrrow{gap:10px}
+.hdrrow > .staff{padding:7px 12px 8px 14px; gap:6px}
+.hdrrow > .staff .cur, .staff .cur{justify-content:space-between; text-align:left; flex-wrap:nowrap; height:auto}
+.curname{display:flex; flex-direction:column; gap:1px; min-width:0}
+.curname .sesn{font-size:21px}
+.hdrrow > .staff .curacts{justify-content:flex-end}
+.staff .curacts .btn, .staff .curacts .ghost{height:36px; padding:0 12px; font-size:14px; white-space:nowrap}
+.sesl{color:var(--ember)}
+a.sesstaff, a.sesstaff[aria-current]{border:1px solid var(--line)}
+a.sesstaff[aria-current]{border-color:var(--ink)}
+.sesitem{border:1px solid var(--line)}
+.sesitem.on{border:2px solid var(--ink); padding:10px 11px 10px 13px}
+.setlabel{margin:14px 2px -4px; font-family:var(--f-display); font-weight:700; font-size:15px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.staffadmin{padding:0; gap:0}
+.staffadmin summary{list-style:none; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; min-height:54px}
+.staffadmin summary::-webkit-details-marker{display:none}
+.staffadmin summary::after{content:"›"; font-family:var(--f-body); font-size:28px; line-height:1; color:var(--muted)}
+.staffadmin[open] summary::after{transform:rotate(90deg)}
+.staffadmin[open] summary{border-bottom:1px solid var(--line)}
+.staffadmin > *:not(summary){margin:12px 16px 0}
+.staffadmin[open]{padding-bottom:16px}
+.staffadmin summary:focus-visible{outline-offset:-3px}
+.sescard{padding:16px; gap:12px}
+.sescard h2{font-size:22px}
+.sescard .actions .btn{flex:1 1 200px}
+.sumgrid{gap:6px 12px}
+.me{font-size:13px}
+.foot{line-height:1.5}
+/* Upis i Pretraga: glavna dugmad aplikacije */
+.tabs{border:2px solid var(--ember); background:var(--surface); box-shadow:0 3px 0 color-mix(in srgb, var(--ember) 22%, transparent)}
+.tab{height:60px; gap:10px; font-size:25px; font-weight:700; color:var(--ember)}
+.tab + .tab{border-left:2px solid var(--ember)}
+.tab svg{width:24px; height:24px; flex:0 0 auto}
+.tab:hover{background:color-mix(in srgb, var(--ember) 8%, var(--surface))}
+.tab[aria-current="page"], .tab[aria-current="page"]:hover{background:var(--ember); color:var(--on-ember)}
+.tab[aria-current="page"] .n{background:var(--on-ember); color:var(--ember)}
+.tab:focus-visible{outline-offset:-5px; outline-color:var(--ink)}
+@media (max-width:420px){ .tab{font-size:21px; gap:7px} .tab svg{width:20px; height:20px} }
+html.big .tab{height:64px; font-size:24px}
+/* sitni detalji */
+h1{display:flex; align-items:center; gap:8px}
+h1 .mark{width:.9em; height:.9em; flex:0 0 auto; color:var(--ember)}
+@media (max-width:420px){ h1{font-size:24px; gap:6px} }
+#meBar{display:none !important}
+.tag{border:0; border-radius:20px; padding:2px 8px; letter-spacing:.04em; background:color-mix(in srgb, currentColor 12%, transparent)}
+.tag.r{border:0; padding:2px 8px; background:color-mix(in srgb, var(--danger) 14%, transparent)}
+.chip b{display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 6px; border-radius:11px; background:var(--bg); font-size:13px}
+.chip[aria-pressed="true"] b{background:color-mix(in srgb, var(--bg) 22%, transparent); color:inherit}
+.row{transition:background-color .15s}
+.row.done{background:color-mix(in srgb, var(--surface) 55%, var(--bg))}
+.row.done .stub{opacity:.7}
+.status,.ghost,.locb,.cpb{border-radius:8px}
+.status[aria-pressed="true"]{border-width:2px}
+.tally{background:var(--surface)}
+.tally dt{letter-spacing:.01em}
+form{gap:16px}
+.foot{text-align:center}
+.notice{border-radius:var(--r)}
+@media (prefers-reduced-motion:no-preference){ .staffadmin summary::after{transition:transform .15s} }
+
+/* ===== prijava ===== */
+body.locked .wrap{display:none}
+.login{min-height:100%; display:flex; align-items:flex-start; justify-content:center; padding-top:6vh}
+.lbox{width:min(100%, 460px); display:flex; flex-direction:column; gap:16px}
+.lbox h1{font-size:30px}
+.lcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:18px; display:flex; flex-direction:column; gap:14px}
+.lcard h2{margin:0; font-family:var(--f-display); font-weight:700; font-size:22px; letter-spacing:.04em; text-transform:uppercase}
+.lchips{display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px}
+.lchips button{height:60px; border-radius:10px; border:1px solid var(--line); background:var(--field); color:var(--ink); font-family:var(--f-display); font-weight:700; font-size:22px; letter-spacing:.02em}
+.lchips button:active{background:color-mix(in srgb, var(--ember) 12%, var(--field))}
+.lpin{display:flex; flex-direction:column; gap:10px}
+.lpin .who{font-family:var(--f-display); font-weight:700; font-size:26px}
+.lpin .field{height:60px; font-size:30px; text-align:center; letter-spacing:.4em}
+.lpin .actions .btn{flex:1 1 120px}
+.lfoot{font-size:13px; color:var(--muted); text-align:center; margin:0}
+.lmsg{margin:0; min-height:20px; font-weight:600; color:var(--danger)}
+.lcard .btn{flex:0 0 auto}
+.lbox h1{font-size:28px; line-height:1.05}
+.lmsg.ok{color:var(--ok)}
+.pinrow2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.pinrow2 .field{text-align:center; letter-spacing:.3em}
+@media (max-width:380px){ .pinrow2{grid-template-columns:1fr} }
+/* štampa */
+#printArea{display:none}
+@media print{
+  body{background:#fff !important; color:#000 !important; padding:0 !important}
+  body > *:not(#printArea){display:none !important}
+  #printArea{display:block !important}
+}
+</style>
+
+</head>
+<body class="locked">
+<div class="login" id="login">
+  <div class="lbox">
+    <h1><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3.2-1.2 4.9-2.8 6.6C7.6 10.8 6 12.6 6 15.3 6 18.9 8.7 21.5 12 21.5s6-2.6 6-6.2c0-2.5-1.3-4.3-2.6-5.6-.2 1.6-1 2.7-2.1 3.3.4-3.6-.4-7.6-1.3-9.5z" fill="currentColor"/></svg><span>Evidencija pečenja</span></h1>
+
+    <div class="lcard" id="lLoad"><p class="lfoot" id="lLoadMsg">Učitavam…</p></div>
+
+    <div class="lcard" id="lPick" hidden>
+      <h2>Ko radi?</h2>
+      <div class="lchips" id="lChips"></div>
+    </div>
+
+    <div class="lcard lpin" id="lPin" hidden>
+      <span class="l">PIN za</span>
+      <span class="who" id="lWho"></span>
+      <input class="field num" id="lPinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" aria-label="PIN">
+      <div class="actions">
+        <button class="btn" id="lPinOk" type="button">Uđi</button>
+        <button class="btn sec" id="lPinBack" type="button">Nazad</button>
+      </div>
+    </div>
+
+    <div class="lcard" id="lSetup" hidden>
+      <h2>Prvo pokretanje</h2>
+      <p class="foot" style="text-align:left">Postavi sebe kao vlasnika. Samo vlasnik dodaje radnike, mijenja i briše upise.</p>
+      <label class="l" for="sIme">Tvoje ime</label>
+      <input class="field" id="sIme" type="text" maxlength="40" autocomplete="off" placeholder="npr. Nikola">
+      <div class="pinrow2">
+        <div><label class="l" for="sPin">PIN (4 cifre)</label><input class="field num" id="sPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+        <div><label class="l" for="sPin2">Ponovi PIN</label><input class="field num" id="sPin2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+      </div>
+      <button class="btn" id="sOk" type="button">Postavi vlasnika</button>
+    </div>
+
+    <p class="lmsg" id="lMsg" role="status"></p>
+  </div>
+</div>
+
+<div class="wrap">
+  <header style="display:flex; flex-direction:column; gap:12px">
+    <div class="titlerow">
+      <h1><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3.2-1.2 4.9-2.8 6.6C7.6 10.8 6 12.6 6 15.3 6 18.9 8.7 21.5 12 21.5s6-2.6 6-6.2c0-2.5-1.3-4.3-2.6-5.6-.2 1.6-1 2.7-2.1 3.3.4-3.6-.4-7.6-1.3-9.5z" fill="currentColor"/></svg><span>Evidencija pečenja</span></h1>
+      <button class="ghost themebtn" id="themeBtn" type="button"></button>
+    </div>
+    <p class="me" id="meBar" hidden></p>
+    <p class="notice" id="notice" hidden></p>
+    <div class="hdrrow">
+    <div class="staff" id="staffBar" hidden>
+      <span class="l" id="staffLabel">Ko radi?</span>
+      <div class="chips" id="staffChips" role="group" aria-label="Ko radi"></div>
+      <div class="pinbox" id="pinBox" hidden>
+        <label class="l" for="pinIn" id="pinLabel">PIN</label>
+        <div class="pinrow">
+          <input class="field num" id="pinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+          <button class="btn" id="pinOk" type="button">Potvrdi</button>
+          <button class="btn sec" id="pinCancel" type="button">Odustani</button>
+        </div>
+        <p class="msg" id="pinMsg" role="status"></p>
+      </div>
+      <div class="cur" id="staffCur" hidden>
+        <p class="curname"><span class="sesl">Radi</span><strong class="sesn" id="curName"></strong></p>
+        <div class="curacts" id="curActs"></div>
+      </div>
+    </div>
+    <a class="staff sesstaff" id="sesBar" href="#sesije" aria-label="Događaji: otvori sve događaje">
+      <span class="sesl">Događaj</span>
+      <strong class="sesn" id="sesName" aria-live="polite"></strong>
+      <span class="sesm" id="sesMeta"></span>
+      <span class="sesgo" aria-hidden="true">›</span>
+    </a>
+    </div>
+    <nav class="tabs" aria-label="Stranice">
+      <a class="tab" id="tabUpis" href="#upis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>Upis</a>
+      <a class="tab" id="tabKidanje" href="#kidanje"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15 15l5 5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Pretraga <span class="n" id="navN" hidden>0</span></a>
+    </nav>
+    <div class="notice sesold" id="sesOld" hidden>
+      <span id="sesOldText"></span>
+      <button class="ghost" id="sesBack" type="button">Aktuelni događaj</button>
+    </div>
+  </header>
+
+  <!-- ===== Stranica: Upis ===== -->
+  <section class="view" id="viewUpis">
+    <dl class="tally four" aria-label="Zbir za ovaj događaj">
+      <div class="c-j"><dt>Jagnjad</dt><dd id="cJ">0</dd></div>
+      <div class="c-p"><dt>Prasad</dt><dd id="cP">0</dd></div>
+      <div class="c-d"><dt>Drugo</dt><dd id="cD">0</dd></div>
+      <div class="c-w"><dt title="Nije preuzeto">Nije preuzeto</dt><dd id="cW">0</dd></div>
+    </dl>
+
+    <p class="notice" id="roNote" hidden>Imaš pristup samo za pregled. Ne možeš dodavati ni mijenjati upise.</p>
+
+    <p class="notice" id="noSes" hidden></p>
+
+    <form id="f" autocomplete="off" novalidate>
+      <fieldset class="full">
+        <legend>Vrsta</legend>
+        <div class="seg three">
+          <input type="radio" name="vrsta" id="vr-jagnje" value="jagnje" checked>
+          <label class="j" for="vr-jagnje">Jagnje</label>
+          <input type="radio" name="vrsta" id="vr-prase" value="prase">
+          <label class="p" for="vr-prase">Prase</label>
+          <input type="radio" name="vrsta" id="vr-drugo" value="drugo">
+          <label class="o" for="vr-drugo">Drugo</label>
+        </div>
+      </fieldset>
+      <div class="full" id="opisWrap" hidden>
+        <label class="l" for="opis">Šta je donešeno</label>
+        <input class="field" id="opis" type="text" placeholder="npr. but, plećka, ćurka" maxlength="40" enterkeyhint="next">
+      </div>
+      <fieldset class="full">
+        <legend>Kidanje</legend>
+        <div class="seg sm">
+          <input type="radio" name="kidanje" id="kid-odmah" value="odmah" checked>
+          <label class="k" for="kid-odmah">Za kidanje</label>
+          <input type="radio" name="kidanje" id="kid-ne" value="ne">
+          <label class="n" for="kid-ne">Bez kidanja</label>
+        </div>
+      </fieldset>
+      <div class="full brojime">
+        <div>
+          <label class="l" for="broj">Broj</label>
+          <input class="field num" id="broj" type="number" inputmode="numeric" min="1" step="1" placeholder="—">
+        </div>
+        <div class="imewrap">
+          <label class="l" for="ime">Ime kupca</label>
+          <input class="field" id="ime" type="text" placeholder="npr. Marko Petrović" maxlength="80" enterkeyhint="done" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="sugg" aria-expanded="false">
+          <ul class="sugg" id="sugg" role="listbox" aria-label="Raniji kupci" hidden></ul>
+        </div>
+      </div>
+      <div class="full extrawrap" id="extraWrap">
+        <div id="extras"></div>
+        <button class="ghost" id="addExtra" type="button">+ Još jedno pečenje za istog kupca</button>
+      </div>
+      <div>
+        <label class="l" for="telefon">Telefon (nije obavezno)</label>
+        <input class="field" id="telefon" type="tel" inputmode="tel" maxlength="30" placeholder="npr. 069 123 456" autocomplete="off">
+      </div>
+      <div>
+        <label class="l" for="dolaziDan">Dolazi (nije obavezno)</label>
+        <div style="display:flex; gap:8px"><select class="field" id="dolaziDan" aria-label="Dan dolaska"></select>
+        <select class="field" id="dolazi" aria-label="Sat dolaska"><option value="">—</option><option>06:00</option><option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option><option>21:00</option><option>22:00</option><option>23:00</option></select></div>
+      </div>
+      <div class="full">
+        <label class="l" for="napomena">Napomena (nije obavezno)</label>
+        <input class="field" id="napomena" type="text" placeholder="npr. 40 eura, polovina" maxlength="160" enterkeyhint="done">
+      </div>
+      <div class="full actions">
+        <button class="btn" id="submit" type="submit">Dodaj</button>
+        <button class="btn sec" id="cancel" type="button" hidden>Odustani</button>
+      </div>
+      <p class="msg full" id="msg" role="status"></p>
+    </form>
+  </section>
+
+  <!-- ===== Stranica: Kidanje ===== -->
+  <section class="view" id="viewKidanje" hidden>
+    <dl class="tally" aria-label="Zbir kidanja za ovaj događaj">
+      <div class="c-w"><dt>Čeka kidanje</dt><dd id="kW">0</dd></div>
+      <div class="c-ok"><dt>Iskidano</dt><dd id="kD">0</dd></div>
+      <div class="c-r"><dt>Bez kidanja</dt><dd id="kT">0</dd></div>
+    </dl>
+
+    <div class="search">
+      <label class="l" for="q">Pretraga po broju ili imenu kupca</label>
+      <div class="qrow"><span class="qwrap"><input class="field" id="q" type="search" inputmode="numeric" placeholder="npr. 7, Marko ili hodnik" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="qx" id="qx" aria-label="Obriši pretragu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button></span><button type="button" class="qkb" id="qkb" aria-label="Promijeni tastaturu">abc</button></div>
+    </div>
+
+    <div class="filterwrap">
+    <div class="filters" id="filters" role="group" aria-label="Filter">
+      <button class="chip" type="button" data-f="sve" aria-pressed="true">Sve <b id="fSve">0</b></button>
+      <button class="chip" type="button" data-f="jagnje" aria-pressed="false">Jagnjad <b id="fJ">0</b></button>
+      <button class="chip" type="button" data-f="prase" aria-pressed="false">Prasad <b id="fP">0</b></button>
+      <button class="chip" type="button" data-f="drugo" aria-pressed="false">Drugo <b id="fD">0</b></button>
+      <button class="chip" type="button" data-f="ceka" aria-pressed="false">Nije preuzeto <b id="fW">0</b></button>
+      <button class="chip" type="button" data-f="preuzeto" aria-pressed="false">Preuzeto <b id="fPr">0</b></button>
+      <button class="chip" type="button" data-f="sati" aria-pressed="false">Po satu dolaska <b id="fSat">0</b></button>
+    </div>
+
+    <div class="filters" id="kfilters" role="group" aria-label="Filter kidanja">
+      <button class="chip" type="button" data-kf="ceka" aria-pressed="false">Čeka kidanje <b id="kfCeka">0</b></button>
+      <button class="chip" type="button" data-kf="iskidano" aria-pressed="false">Iskidano <b id="kfIsk">0</b></button>
+      <button class="chip" type="button" data-kf="bez" aria-pressed="false">Bez kidanja <b id="kfBez">0</b></button>
+    </div>
+    </div>
+
+    <div class="undo" id="undoBar" hidden>
+      <span id="undoText"></span>
+      <button class="ghost" id="undoBtn" type="button">Vrati</button>
+    </div>
+    <p class="msg" id="msg2" role="status"></p>
+
+    <ul id="list2" aria-live="polite"></ul>
+  </section>
+
+  <!-- ===== Stranica: Sesije ===== -->
+  <section class="view" id="viewSesije" hidden>
+    <div class="sescard" id="sumCard" hidden>
+      <h2>Zbir: <span id="sumName"></span></h2>
+      <dl class="sumgrid" id="sumGrid"></dl>
+      <div class="actions">
+        <button class="btn sec" id="printBtn" type="button">Štampaj spisak</button>
+        <button class="btn sec" id="printDlBtn" type="button">Preuzmi spisak za štampu</button>
+        <button class="btn sec" id="csvBtn" type="button">Preuzmi tabelu (CSV)</button>
+      </div>
+      <p class="msg" id="csvMsg" role="status"></p>
+    </div>
+
+    <div class="sescard" id="wCard" hidden>
+      <h2>Po radniku</h2>
+      <table class="wt" id="wTab"></table>
+      <p class="foot" id="wNote" hidden></p>
+    </div>
+
+    <div class="sescard" id="panelNew" hidden>
+      <h2>Novi događaj</h2>
+      <label class="l" for="sesNewName">Naziv novog događaja</label>
+      <input class="field" id="sesNewName" type="text" maxlength="60" placeholder="npr. Sveti Luka" autocomplete="off">
+      <p class="foot" id="sesNewHint"></p>
+      <div class="actions">
+        <button class="btn" id="sesNewOk" type="button">Počni novi događaj</button>
+      </div>
+    </div>
+
+    <div class="sescard">
+      <h2>Svi događaji</h2>
+      <ul id="sesList"></ul>
+    </div>
+
+    <div class="sescard" id="panelRename" hidden>
+      <h2>Preimenuj izabrani događaj</h2>
+      <label class="l" for="sesRenameName">Novi naziv</label>
+      <input class="field" id="sesRenameName" type="text" maxlength="60" autocomplete="off">
+      <div class="actions">
+        <button class="btn" id="sesRenameOk" type="button">Sačuvaj naziv</button>
+      </div>
+    </div>
+
+    <p class="msg" id="sesMsg" role="status"></p>
+  </section>
+
+  <h2 class="setlabel" id="setLabel" hidden>Podešavanja</h2>
+
+  <details class="staffadmin" id="myPinAdmin">
+    <summary>Moj PIN</summary>
+    <p class="foot">Promijeni PIN kojim ulaziš u aplikaciju.</p>
+    <div class="pinrow2">
+      <input class="field num" id="myPinOld" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="Stari" aria-label="Stari PIN">
+      <input class="field num" id="myPinNew" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="Novi" aria-label="Novi PIN">
+    </div>
+    <div class="actions"><button class="btn" id="myPinOk" type="button">Promijeni PIN</button></div>
+    <p class="msg" id="myPinMsg" role="status"></p>
+  </details>
+
+  <details class="staffadmin" id="dataAdmin" hidden>
+    <summary>Podaci</summary>
+    <p class="foot">Rezervna kopija svih upisa, događaja i podešavanja. Uvoz dodaje podatke iz fajla (npr. iz stare aplikacije); postojeći upisi sa istim oznakama se prepisuju.</p>
+    <div class="actions">
+      <button class="btn sec" id="expBtn" type="button">Preuzmi rezervnu kopiju</button>
+      <label class="btn sec" for="impFile" style="display:inline-flex; align-items:center; justify-content:center">Uvezi iz fajla</label>
+      <input type="file" id="impFile" accept=".json,application/json" hidden>
+    </div>
+    <p class="msg" id="dataMsg" role="status"></p>
+  </details>
+
+  <details class="staffadmin" id="staffAdmin" hidden>
+    <summary>Osoblje</summary>
+    <p class="foot">Svaki radnik ulazi svojim imenom i PIN-om. Uklonjen radnik odmah gubi pristup. Ako neko zaboravi PIN, ukloni ga i dodaj ponovo sa novim PIN-om.</p>
+    <ul id="staffList"></ul>
+    <div class="staffform">
+      <input class="field" id="newStaff" type="text" maxlength="40" placeholder="Ime radnika, npr. Milena" autocomplete="off">
+      <input class="field num" id="newStaffPin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off" aria-label="PIN novog radnika" style="flex:0 0 110px; text-align:center; letter-spacing:.3em">
+      <button class="btn" id="staffAdd" type="button">Dodaj</button>
+    </div>
+    <p class="msg" id="staffMsg" role="status"></p>
+  </details>
+
+  <details class="staffadmin" id="kdAdmin" hidden>
+    <summary>Kidači</summary>
+    <p class="foot">Ljudi koji kidaju. Kad se pečenje označi kao iskidano, bira se jedan od njih.</p>
+    <ul id="kdList"></ul>
+    <div class="staffform">
+      <input class="field" id="newKd" type="text" maxlength="24" placeholder="Ime, npr. Nikola" autocomplete="off">
+      <button class="btn" id="kdAdd" type="button">Dodaj</button>
+    </div>
+    <p class="msg" id="kdMsg" role="status"></p>
+  </details>
+
+  <details class="staffadmin" id="mjAdmin" hidden>
+    <summary>Mjesta</summary>
+    <p class="foot">Mjesta gdje se ostavlja pečenje (dugmad „Gdje je“ na pretrazi). Promjena odmah važi na svim telefonima. Pečenja koja su već na uklonjenom mjestu zadržavaju taj natpis.</p>
+    <ul id="mjList"></ul>
+    <div class="staffform">
+      <input class="field" id="newMj" type="text" maxlength="24" placeholder="Novo mjesto, npr. Hladnjak" autocomplete="off">
+      <button class="btn" id="mjAdd" type="button">Dodaj</button>
+    </div>
+    <p class="msg" id="mjMsg" role="status"></p>
+  </details>
+
+  <details class="staffadmin" id="histAdmin" hidden>
+    <summary>Istorija</summary>
+    <p class="foot">Ko je i kad dodao, izmijenio, preuzeo, iskidao ili obrisao. Najnovije je na vrhu, a starije se otvaraju dugmetom na dnu.</p>
+    <ul id="histList"></ul>
+    <div class="actions" id="pruneBox"><button class="ghost danger" id="histPrune" type="button">Obriši zapise starije od 6 mjeseci</button></div>
+    <div class="pinrow" id="prunePin" hidden>
+      <input class="field num" id="prunePinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="PIN" aria-label="Tvoj PIN">
+      <button class="btn" id="prunePinOk" type="button">Obriši stare zapise</button>
+      <button class="btn sec" id="prunePinNo" type="button">Odustani</button>
+    </div>
+    <p class="foot" id="pruneNote"></p>
+    <p class="msg" id="histMsg" role="status"></p>
+  </details>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<div id="printArea"></div>
+
+<div class="bconf" id="kConf" role="alertdialog" aria-modal="true" aria-labelledby="kConfQ" hidden>
+  <div class="bcbox">
+    <p class="bcwhat" id="kConfWhat"></p>
+    <p class="bcname" id="kConfName"></p>
+    <p class="bcq" id="kConfQ">Ko je iskidao?</p>
+    <div class="kgrid" id="kList"></div>
+    <button class="btn sec kno" id="kNo" type="button">Odustani</button>
+  </div>
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="shim.js"></script>
+</body>
+</html>
