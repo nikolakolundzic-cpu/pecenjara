@@ -8,4 +8,4 @@ window.PECENJE_CONFIG = {
   messagingSenderId: "304118447350",
   appId: "1:304118447350:web:d4e0ea3d452e04badb40d7"
 };
-window.PECENJE_VERZIJA = "8";
+window.PECENJE_VERZIJA = "9";

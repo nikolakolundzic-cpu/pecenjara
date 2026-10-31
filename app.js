@@ -912,7 +912,7 @@
       var c = kdConfirm === n;
       return '<li class="srow" data-n="' + esc(n) + '"><span class="sname">' + esc(n) + '</span><span class="sbtns">' +
         '<button class="ghost danger' + (c ? ' confirm' : '') + '" type="button" data-kact="del">' + (c ? 'Potvrdi uklanjanje' : 'Ukloni') + '</button></span></li>';
-    }).join('') : '<li class="note">Nema kidača. Tada se pri kidanju samo traži potvrda.</li>';
+    }).join('') : '<li class="note">Lista je prazna. Tada se pri kidanju samo traži potvrda.</li>';
   }
   async function saveKd(list){
     if (S.mode === 'db') { await kdRef.set({ lista: list }); }
@@ -923,10 +923,10 @@
   async function addKd(){
     var n = $('newKd').value.trim();
     if (!n) { setKdMsg('Upiši ime.', true); return; }
-    if (KIDACI.some(function(x){ return norm(x) === norm(n); })) { setKdMsg('Taj kidač već postoji.', true); return; }
-    if (KIDACI.length >= 10) { setKdMsg('Može najviše 10 kidača.', true); return; }
-    try { await saveKd(KIDACI.concat([n])); $('newKd').value = ''; setKdMsg('Dodat kidač: ' + n + '.'); }
-    catch(err){ setKdMsg('Nije sačuvano. Samo vlasnik i urednici mogu mijenjati kidače.', true); }
+    if (KIDACI.some(function(x){ return norm(x) === norm(n); })) { setKdMsg('To ime je već na listi.', true); return; }
+    if (KIDACI.length >= 10) { setKdMsg('Može najviše 10 imena.', true); return; }
+    try { await saveKd(KIDACI.concat([n])); $('newKd').value = ''; setKdMsg('Dodato: ' + n + '.'); }
+    catch(err){ setKdMsg('Nije sačuvano. Provjeri internet i pokušaj ponovo.', true); }
   }
   $('kdAdd').addEventListener('click', addKd);
   $('newKd').addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); addKd(); } });
@@ -936,7 +936,7 @@
     clearTimeout(kdTimer);
     if (kdConfirm !== n) { kdConfirm = n; renderKdAdmin(); kdTimer = setTimeout(function(){ kdConfirm = null; renderKdAdmin(); }, 4000); return; }
     kdConfirm = null;
-    try { await saveKd(KIDACI.filter(function(x){ return x !== n; })); setKdMsg('Uklonjen kidač: ' + n + '.'); }
+    try { await saveKd(KIDACI.filter(function(x){ return x !== n; })); setKdMsg('Uklonjeno: ' + n + '.'); }
     catch(err){ setKdMsg('Nije uklonjeno.', true); renderKdAdmin(); }
   });
   /* ---------- štampa ---------- */
