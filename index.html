@@ -553,6 +553,12 @@ body.locked .wrap{display:none}
 .lmsg.ok{color:var(--ok)}
 .pinrow2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
 .pinrow2 .field{text-align:center; letter-spacing:.3em}
+.pinrow2 .field.sif, .field.sif{text-align:left; letter-spacing:normal}
+.lpin .field.sif{font-size:22px; text-align:left; letter-spacing:normal}
+#myPinAdmin .seg label{font-size:17px}
+#myPinAdmin .seg input:checked + label{border-color:var(--ink); background:color-mix(in srgb, var(--ink) 10%, var(--field))}
+.staffadmin > .field{width:calc(100% - 32px)}
+.lpin .who{padding:0; display:block}
 @media (max-width:380px){ .pinrow2{grid-template-columns:1fr} }
 /* nova verzija */
 .novaverzija{position:fixed; left:0; right:0; bottom:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -583,7 +589,7 @@ body.locked .wrap{display:none}
     </div>
 
     <div class="lcard lpin" id="lPin" hidden>
-      <span class="l">PIN za</span>
+      <span class="l" id="lWhat">PIN za</span>
       <span class="who" id="lWho"></span>
       <input class="field num" id="lPinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" aria-label="PIN">
       <div class="actions">
@@ -816,13 +822,25 @@ body.locked .wrap{display:none}
     <div class="setgrid">
 
   <details class="staffadmin" id="myPinAdmin">
-    <summary>Moj PIN</summary>
-    <p class="foot">Promijeni PIN kojim ulaziš u aplikaciju.</p>
+    <summary id="myPinSum">Moj PIN</summary>
+    <p class="foot" id="myPinFoot">Promijeni PIN kojim ulaziš u aplikaciju.</p>
+    <fieldset id="myMode" hidden>
+      <legend>Ulazim sa</legend>
+      <div class="seg sm">
+        <input type="radio" name="myMode" id="mm-pin" value="pin">
+        <label for="mm-pin">PIN (4 cifre)</label>
+        <input type="radio" name="myMode" id="mm-sif" value="sifra">
+        <label for="mm-sif">Šifra</label>
+      </div>
+    </fieldset>
+    <label class="l" for="myPinOld" id="myOldL">Trenutni PIN</label>
+    <input class="field" id="myPinOld" type="password" autocomplete="current-password">
+    <label class="l" for="myPinNew" id="myNewL">Novi PIN</label>
     <div class="pinrow2">
-      <input class="field num" id="myPinOld" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="Stari" aria-label="Stari PIN">
-      <input class="field num" id="myPinNew" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="Novi" aria-label="Novi PIN">
+      <input class="field" id="myPinNew" type="password" autocomplete="new-password" placeholder="Novi" aria-label="Novi">
+      <input class="field" id="myPinNew2" type="password" autocomplete="new-password" placeholder="Ponovi" aria-label="Ponovi novi">
     </div>
-    <div class="actions"><button class="btn" id="myPinOk" type="button">Promijeni PIN</button></div>
+    <div class="actions"><button class="btn" id="myPinOk" type="button">Sačuvaj</button></div>
     <p class="msg" id="myPinMsg" role="status"></p>
   </details>
 

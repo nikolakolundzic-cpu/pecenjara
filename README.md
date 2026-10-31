@@ -28,6 +28,9 @@ U repozitorijumu nema nijednog kupca, broja telefona ni PIN-a. Svi podaci su sam
 
 Ovo ne provjerava samo aplikacija, nego i sama baza (`firestore.rules`).
 
+Vlasnik pod **Podešavanja → Moj PIN / šifra** može umjesto PIN-a postaviti šifru sa slovima, brojevima
+i znakovima (najmanje 6). Na ekranu za prijavu se tada kod njegovog imena kuca šifra.
+
 ## Postavljanje (jednom)
 
 1. Firebase projekat: Authentication → Email/Password uključen; Firestore Database napravljen.

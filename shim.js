@@ -182,11 +182,19 @@
   $('lChips').addEventListener('click', function(e){
     var b = e.target.closest('[data-uid]'); if (!b) return;
     picked = STAFF.filter(function(p){ return p.id === b.getAttribute('data-uid'); })[0]; if (!picked) return;
-    $('lWho').textContent = picked.ime; $('lPinIn').value = ''; msg('');
+    var sif = picked.tajna === 'sifra', inp = $('lPinIn');
+    $('lWhat').textContent = sif ? 'Šifra za' : 'PIN za';
+    inp.setAttribute('inputmode', sif ? 'text' : 'numeric'); inp.maxLength = sif ? 64 : 4;
+    inp.placeholder = sif ? 'Šifra' : '••••'; inp.classList.toggle('sif', sif);
+    inp.setAttribute('autocomplete', sif ? 'current-password' : 'off');
+    $('lWho').textContent = picked.ime; inp.value = ''; msg('');
     show('lPin'); try { $('lPinIn').focus(); } catch(x){}
   });
-  digits($('lPinIn'));
-  $('lPinIn').addEventListener('input', function(){ if (this.value.length === 4) login(); });
+  $('lPinIn').addEventListener('input', function(){
+    if (picked && picked.tajna === 'sifra') return;          // šifra: slova i znakovi, ulaz na dugme
+    this.value = this.value.replace(/\D/g, '').slice(0, 4);
+    if (this.value.length === 4) login();
+  });
   $('lPinIn').addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); login(); } });
   $('lPinOk').addEventListener('click', login);
   $('lPinBack').addEventListener('click', function(){ picked = null; msg(''); show('lPick'); });
@@ -194,14 +202,15 @@
   function login(){
     var pin = $('lPinIn').value;
     if (!picked || busy) return;
-    if (!/^\d{4}$/.test(pin)) { msg('Upiši PIN od 4 cifre.'); return; }
+    var sif = picked.tajna === 'sifra';
+    if (sif ? !pin : !/^\d{4}$/.test(pin)) { msg(sif ? 'Upiši šifru.' : 'Upiši PIN od 4 cifre.'); return; }
     busy = true; $('lPinOk').disabled = true; msg('');
     auth.signInWithEmailAndPassword(picked.email, pwd(pin)).catch(function(e){
       var c = (e && e.code) || '';
       $('lPinIn').value = '';
       msg(/too-many-requests/.test(c) ? 'Previše pokušaja. Sačekaj par minuta.'
         : /network/.test(c) ? 'Nema interneta. Pokušaj ponovo.'
-        : 'Pogrešan PIN.');
+        : (picked && picked.tajna === 'sifra' ? 'Pogrešna šifra.' : 'Pogrešan PIN.'));
       try { $('lPinIn').focus(); } catch(x){}
     }).then(function(){ busy = false; $('lPinOk').disabled = false; });
   }

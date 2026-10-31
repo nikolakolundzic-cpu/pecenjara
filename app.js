@@ -1283,17 +1283,52 @@
     }
   });
 
-  /* ---------- moj PIN ---------- */
+  /* ---------- moj PIN ili šifra (vlasnik može ulaziti šifrom sa slovima i znakovima) ---------- */
   function setMyPinMsg(t, isErr){ var m = $('myPinMsg'); m.textContent = t || ''; m.className = 'msg' + (isErr ? ' err' : ''); }
-  ['myPinOld', 'myPinNew'].forEach(function(id){ $(id).addEventListener('input', function(){ this.value = this.value.replace(/\D/g, '').slice(0, 4); }); });
+  var myModeSel = null;
+  function myStaff(){ return STAFF.filter(function(p){ return p.id === ME.id; })[0] || null; }
+  function syncMyPin(){
+    var me = myStaff(), cur = (me && me.tajna) === 'sifra' ? 'sifra' : 'pin';
+    var own = !!ME.isOwner && S.mode === 'db';
+    $('myMode').hidden = !own;
+    var mode = own ? (myModeSel || cur) : 'pin';
+    $('mm-pin').checked = mode === 'pin'; $('mm-sif').checked = mode === 'sifra';
+    $('myPinSum').textContent = own ? 'Moj PIN / šifra' : 'Moj PIN';
+    $('myPinFoot').textContent = mode === 'sifra'
+      ? 'Šifra može imati slova, brojeve i znakove, najmanje 6. Na ekranu za prijavu tada se kuca šifra umjesto PIN-a.'
+      : 'PIN od 4 cifre kojim ulaziš u aplikaciju.';
+    $('myOldL').textContent = cur === 'sifra' ? 'Trenutna šifra' : 'Trenutni PIN';
+    $('myNewL').textContent = mode === 'sifra' ? 'Nova šifra' : 'Novi PIN';
+    var o = $('myPinOld');
+    o.setAttribute('inputmode', cur === 'sifra' ? 'text' : 'numeric'); o.maxLength = cur === 'sifra' ? 64 : 4; o.classList.toggle('sif', cur === 'sifra');
+    ['myPinNew', 'myPinNew2'].forEach(function(id){
+      var el = $(id); el.setAttribute('inputmode', mode === 'sifra' ? 'text' : 'numeric'); el.maxLength = mode === 'sifra' ? 64 : 4; el.classList.toggle('sif', mode === 'sifra');
+    });
+    return { cur: cur, mode: mode };
+  }
+  ['mm-pin', 'mm-sif'].forEach(function(id){ $(id).addEventListener('change', function(){ myModeSel = this.value; $('myPinNew').value = ''; $('myPinNew2').value = ''; setMyPinMsg(''); syncMyPin(); }); });
+  ['myPinOld', 'myPinNew', 'myPinNew2'].forEach(function(id){
+    $(id).addEventListener('input', function(){ if (this.getAttribute('inputmode') === 'numeric') this.value = this.value.replace(/\D/g, '').slice(0, 4); });
+  });
   $('myPinOk').addEventListener('click', async function(){
-    var a = $('myPinOld').value, b = $('myPinNew').value;
-    if (!/^\d{4}$/.test(a) || !/^\d{4}$/.test(b)) { setMyPinMsg('Upiši stari i novi PIN, po 4 cifre.', true); return; }
-    if (a === b) { setMyPinMsg('Novi PIN je isti kao stari.', true); return; }
+    var st = syncMyPin(), a = $('myPinOld').value, b = $('myPinNew').value, b2 = $('myPinNew2').value;
+    if (!a) { setMyPinMsg(st.cur === 'sifra' ? 'Upiši trenutnu šifru.' : 'Upiši trenutni PIN.', true); return; }
+    if (st.mode === 'pin' && !/^\d{4}$/.test(b)) { setMyPinMsg('Novi PIN mora imati tačno 4 cifre.', true); return; }
+    if (st.mode === 'sifra' && (b.length < 6 || b.length > 64)) { setMyPinMsg('Šifra mora imati najmanje 6 znakova.', true); return; }
+    if (b !== b2) { setMyPinMsg('Nova ' + (st.mode === 'sifra' ? 'šifra' : 'PIN') + ' i ponovljeni unos se ne poklapaju.', true); return; }
+    if (a === b) { setMyPinMsg('Novo je isto kao staro.', true); return; }
     var btn = this; btn.disabled = true;
-    try { await window.__promijeniPin(a, b); $('myPinOld').value = ''; $('myPinNew').value = ''; setMyPinMsg('PIN je promijenjen.'); }
-    catch(err){ setMyPinMsg(err && err.code === 'pogresan' ? 'Stari PIN nije tačan.' : 'PIN nije promijenjen. Provjeri internet i pokušaj ponovo.', true); }
-    finally { btn.disabled = false; }
+    var promjena = st.mode !== st.cur;
+    try {
+      /* prvo se zapiše način ulaza, pa tek onda nova tajna (ako tajna ne uspije, vraća se način) */
+      if (promjena) await staffRef.doc(ME.id).update({ tajna: st.mode });
+      try { await window.__promijeniPin(a, b); }
+      catch(err){ if (promjena) { try { await staffRef.doc(ME.id).update({ tajna: st.cur }); } catch(x){} } throw err; }
+      $('myPinOld').value = ''; $('myPinNew').value = ''; $('myPinNew2').value = ''; myModeSel = null;
+      setMyPinMsg(st.mode === 'sifra' ? (promjena ? 'Šifra je postavljena. Od sada ulaziš šifrom.' : 'Šifra je promijenjena.') : (promjena ? 'Vraćen je PIN. Od sada ulaziš PIN-om.' : 'PIN je promijenjen.'));
+    } catch(err){
+      setMyPinMsg(err && err.code === 'pogresan' ? (st.cur === 'sifra' ? 'Trenutna šifra nije tačna.' : 'Trenutni PIN nije tačan.') : 'Nije sačuvano. Provjeri internet i pokušaj ponovo.', true);
+    } finally { btn.disabled = false; syncMyPin(); }
   });
 
   /* ---------- podaci: rezervna kopija i uvoz ---------- */
@@ -1565,6 +1600,7 @@
     $('staffAdmin').hidden = !adm || !pruneAllowed();
     $('dataAdmin').hidden = !pruneAllowed();
     $('setLabel').hidden = false;
+    syncMyPin();
     $('histAdmin').hidden = !adm || !canView();
     if (S.mode === 'db' && histRef && S.staffLoaded) {
       if (canView() && !histUnsub) subHist();
