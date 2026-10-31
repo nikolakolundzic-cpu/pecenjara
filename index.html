@@ -516,6 +516,20 @@ body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-in
 /* mekši prelazi pri dodiru */
 .btn:active, .status:active, .ghost:active, .chip:active, .locb:active, .cpb:active{transform:translateY(1px)}
 .row{box-shadow:0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent)}
+/* sva podešavanja u jednom prozoru */
+.settings{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); margin-top:6px}
+.settings > summary{list-style:none; display:flex; align-items:center; gap:10px; padding:14px 16px; min-height:58px; cursor:pointer;
+  font-family:var(--f-display); font-weight:700; font-size:22px; letter-spacing:.06em; text-transform:uppercase}
+.settings > summary::-webkit-details-marker{display:none}
+.settings > summary svg{width:24px; height:24px; color:var(--ember); flex:0 0 auto}
+.settings > summary span{flex:1 1 auto}
+.settings > summary::after{content:"›"; font-family:var(--f-body); font-size:28px; line-height:1; color:var(--muted)}
+.settings[open] > summary::after{transform:rotate(90deg)}
+.settings[open] > summary{border-bottom:1px solid var(--line)}
+.setgrid{display:flex; flex-direction:column; gap:10px; padding:12px}
+.setgrid .staffadmin{background:var(--field)}
+.setgrid .staffadmin summary{font-size:18px; min-height:50px; padding:10px 14px}
+@media (prefers-reduced-motion:no-preference){ .settings > summary::after{transition:transform .15s} }
 @media (prefers-reduced-motion:no-preference){ .staffadmin summary::after{transition:transform .15s} }
 
 /* ===== prijava ===== */
@@ -797,7 +811,9 @@ body.locked .wrap{display:none}
     <p class="msg" id="sesMsg" role="status"></p>
   </section>
 
-  <h2 class="setlabel" id="setLabel" hidden>Podešavanja</h2>
+  <details class="settings" id="setLabel">
+    <summary><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3L5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Podešavanja</span></summary>
+    <div class="setgrid">
 
   <details class="staffadmin" id="myPinAdmin">
     <summary>Moj PIN</summary>
@@ -867,6 +883,8 @@ body.locked .wrap{display:none}
     </div>
     <p class="foot" id="pruneNote"></p>
     <p class="msg" id="histMsg" role="status"></p>
+  </details>
+    </div>
   </details>
 
   <p class="foot" id="foot"></p>

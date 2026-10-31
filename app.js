@@ -83,6 +83,9 @@
     $('pruneNote').textContent = pa ? '' : 'Stare zapise može brisati samo vlasnik.';
   }
   $('histAdmin').addEventListener('toggle', function(){ if (this.open) renderHist(); });
+  /* telefon pamti da li su podešavanja otvorena */
+  try { if (localStorage.getItem('pecenje-podesavanja') === '1') $('setLabel').open = true; } catch(e){}
+  $('setLabel').addEventListener('toggle', function(){ try { localStorage.setItem('pecenje-podesavanja', this.open ? '1' : '0'); } catch(e){} });
   $('histList').addEventListener('click', function(e){
     if (e.target.closest('#histMore')) {
       if (S.mode === 'db') { S.histLimit += 150; subHist(); }
@@ -1561,7 +1564,7 @@
     var adm = (S.mode === 'db' && ME.canEdit && !ro()) || S.mode === 'local';
     $('staffAdmin').hidden = !adm || !pruneAllowed();
     $('dataAdmin').hidden = !pruneAllowed();
-    $('setLabel').hidden = !adm;
+    $('setLabel').hidden = false;
     $('histAdmin').hidden = !adm || !canView();
     if (S.mode === 'db' && histRef && S.staffLoaded) {
       if (canView() && !histUnsub) subHist();
