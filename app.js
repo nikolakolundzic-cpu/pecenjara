@@ -275,7 +275,7 @@
     var what = o.vrsta === 'jagnje' ? 'jagnje' : (o.vrsta === 'prase' ? 'prase' : 'pečenje' + (o.opis ? ' (' + o.opis + ')' : ''));
     var sms = 'Poštovani, Vaše ' + what + ' broj ' + o.broj + ' je spremno za preuzimanje.';
     var smsSep = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) ? '&' : '?';
-    return '<div class="copy">' + (num ? '<a class="cpb" href="tel:' + esc(num) + '" aria-label="Pozovi ' + esc(t) + '">📞 ' + esc(t) + '</a>' : '<span class="cpb">' + esc(t) + '</span>') +
+    return '<div class="copy">' + (num ? '<button class="cpb" type="button" data-call="' + esc(num) + '" data-tel="' + esc(t) + '" data-who="' + esc(o.ime || '') + '" aria-label="Pozovi ' + esc(t) + '">📞 ' + esc(t) + '</button>' : '<span class="cpb">' + esc(t) + '</span>') +
       (o.preuzeto || !num ? '' : '<a class="cpb" href="sms:' + esc(num) + smsSep + 'body=' + esc(encodeURIComponent(sms)) + '">💬 Pošalji SMS</a>') + '</div>';
   }
   function ro(){ return ME.canWrite === false; }
@@ -809,6 +809,8 @@
     undoTimer = setTimeout(hideUndo, 8000);
   }
   $('list2').addEventListener('click', async function(e){
+    var cl = e.target.closest('[data-call]');
+    if (cl) { openCall(cl.getAttribute('data-call'), cl.getAttribute('data-tel'), cl.getAttribute('data-who')); return; }
     var cp = e.target.closest('[data-copy]');
     if (cp) {
       var t = cp.getAttribute('data-copy'), ok = false;
@@ -849,7 +851,28 @@
   });
 
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' && !$('kConf').hidden) closeK(null);
+    if (e.key !== 'Escape') return;
+    if (!$('kConf').hidden) closeK(null);
+    if (!$('callConf').hidden) closeCall();
+  });
+
+  /* ---------- poziv uz potvrdu ---------- */
+  var callAt = 0;
+  function openCall(num, tel, who){
+    $('callNum').textContent = tel || num;
+    $('callWho').textContent = who || ''; $('callWho').hidden = !who;
+    $('callYes').setAttribute('href', 'tel:' + num);
+    callAt = Date.now();
+    $('callConf').hidden = false;
+    try { $('callNo').focus(); } catch(e){}
+  }
+  function closeCall(){ $('callConf').hidden = true; }
+  $('callNo').addEventListener('click', closeCall);
+  $('callConf').addEventListener('click', function(e){ if (e.target === $('callConf')) closeCall(); });
+  $('callYes').addEventListener('click', function(e){
+    /* slučajan dupli dodir ne zove: potvrda radi tek kad prozor stoji pola sekunde */
+    if (Date.now() - callAt < 600) { e.preventDefault(); return; }
+    setTimeout(closeCall, 300);
   });
 
   /* ---------- izbor kidača ---------- */

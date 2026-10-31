@@ -341,6 +341,11 @@ html.big .tag{font-size:13px; padding:1px 6px}
 html.big .note{font-size:18px}
 html.big .when{font-size:15px}
 html.big .cpb{height:38px; font-size:15px; max-width:170px}
+.cpb{display:inline-flex; align-items:center; text-decoration:none}
+.callnum{font-size:clamp(30px, 9vw, 44px)}
+.callacts{display:flex; flex-direction:column; gap:12px; margin-top:6px}
+.callacts .btn{flex:0 0 auto; height:58px; font-size:20px; display:flex; align-items:center; justify-content:center; text-decoration:none}
+.callyes{background:var(--ok); color:var(--surface)}
 html.big .copy{gap:7px}
 html.big .row .loc .locb{height:36px; font-size:15px; padding:0 9px}
 html.big .row > .loc{gap:6px}
@@ -838,6 +843,18 @@ body.locked .wrap{display:none}
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <div id="printArea"></div>
+
+<div class="bconf" id="callConf" role="alertdialog" aria-modal="true" aria-labelledby="callQ" hidden>
+  <div class="bcbox">
+    <p class="bcq" id="callQ">Pozvati kupca?</p>
+    <p class="bcwhat callnum" id="callNum"></p>
+    <p class="bcname" id="callWho"></p>
+    <div class="callacts">
+      <a class="btn callyes" id="callYes" href="#">📞 Pozovi</a>
+      <button class="btn sec" id="callNo" type="button">Odustani</button>
+    </div>
+  </div>
+</div>
 
 <div class="bconf" id="kConf" role="alertdialog" aria-modal="true" aria-labelledby="kConfQ" hidden>
   <div class="bcbox">
