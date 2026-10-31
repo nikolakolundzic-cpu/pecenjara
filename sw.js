@@ -1,7 +1,7 @@
 /* Čuva aplikaciju na telefonu da se otvori i bez interneta. Podatke čuva Firebase. */
-const VERZIJA = 'pecenje-v3';
+const VERZIJA = 'pecenje-v4';
 const OSNOVA = ['./', 'index.html', 'app.js', 'shim.js', 'config.js', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'vendor/jspdf.umd.min.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERZIJA).then(c => c.addAll(OSNOVA)).then(() => self.skipWaiting()));

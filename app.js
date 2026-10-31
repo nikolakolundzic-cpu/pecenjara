@@ -964,44 +964,136 @@
       (body || '<tr><td colspan="7">Nema upisa.</td></tr>') + '</tbody></table></div>';
   }
   function csvMsg(t, isErr){ var m = $('csvMsg'); m.textContent = t || ''; m.className = 'msg' + (isErr ? ' err' : ''); }
-  function printDoc(){
-    var cur = curSession();
-    return '<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(cur.ime) + '</title>' +
-      '<style>body{margin:16px;background:#fff}' + PCSS + '@page{margin:12mm}@media print{body{margin:0}}</style></head><body>' + printBody() +
-      '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print()}catch(e){}},300)});<\/script></body></html>';
+  /* ---------- spisak kao PDF: crta se stranica po stranica (A4, 150 dpi) ---------- */
+  function spisakPdf(){
+    var cur = curSession(); if (!cur || !window.jspdf) return null;
+    var day = dayOrders().slice().sort(sortRows);
+    var W = 1240, H = 1754, M = 70, F = 'Arial, Helvetica, sans-serif';
+    var cols = [['Broj', 90], ['Ime', 250], ['Telefon', 180], ['Dolazi', 140], ['Kidanje', 110], ['Napomena', 220], ['Preuzeto', 110]];
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var g = cv.getContext('2d');
+    function wrap(t, w, font){
+      g.font = font; t = String(t || '');
+      if (!t) return [''];
+      var words = t.split(/\s+/), lines = [], line = '';
+      words.forEach(function(wd){
+        var test = line ? line + ' ' + wd : wd;
+        if (g.measureText(test).width <= w || !line) line = test; else { lines.push(line); line = wd; }
+      });
+      if (line) lines.push(line);
+      return lines;
+    }
+    var cnt = function(v){ return day.filter(function(o){ return o.vrsta === v; }).length; };
+    var rows = [], last = '';
+    day.forEach(function(o){
+      if (o.vrsta !== last) { last = o.vrsta; rows.push({ g: o.vrsta === 'jagnje' ? 'JAGNJAD' : o.vrsta === 'prase' ? 'PRASAD' : 'DRUGO' }); }
+      rows.push({ o: o });
+    });
+    var pages = [], y = 0, page = -1;
+    function line(){ g.strokeStyle = '#777'; g.lineWidth = 1.5; }
+    function newPage(){
+      if (page >= 0) pages.push(cv.toDataURL('image/jpeg', 0.9));
+      page++;
+      g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.fillStyle = '#000'; g.textBaseline = 'top';
+      y = M;
+      if (page === 0) {
+        g.font = 'bold 46px ' + F; g.fillText(cur.ime, M, y); y += 60;
+        g.font = '22px ' + F;
+        g.fillText('Jagnjad ' + cnt('jagnje') + '  ·  Prasad ' + cnt('prase') + '  ·  Drugo ' + cnt('drugo') + '  ·  Ukupno ' + day.length + '  ·  odštampano ' + fmtWhen(Date.now()), M, y);
+        y += 44;
+      }
+      var x = M; g.fillStyle = '#e6e6e6'; g.fillRect(M, y, W - 2 * M, 40); g.fillStyle = '#000';
+      g.font = 'bold 21px ' + F;
+      cols.forEach(function(c){ g.fillText(c[0], x + 8, y + 10); x += c[1]; });
+      line(); g.strokeRect(M, y, W - 2 * M, 40);
+      y += 40;
+    }
+    function box(x, yy, done){
+      g.lineWidth = 2.5; g.strokeStyle = '#000'; g.strokeRect(x, yy, 24, 24);
+      if (done) { g.beginPath(); g.moveTo(x + 5, yy + 12); g.lineTo(x + 10, yy + 19); g.lineTo(x + 20, yy + 5); g.stroke(); }
+    }
+    newPage();
+    if (!rows.length) { g.font = '24px ' + F; g.fillText('Nema upisa.', M + 8, y + 12); }
+    rows.forEach(function(r){
+      if (r.g) {
+        if (y + 38 + 50 > H - M) newPage();
+        g.fillStyle = '#f2f2f2'; g.fillRect(M, y, W - 2 * M, 38); g.fillStyle = '#000';
+        g.font = 'bold 21px ' + F; g.fillText(r.g, M + 8, y + 9);
+        line(); g.strokeRect(M, y, W - 2 * M, 38);
+        y += 38; return;
+      }
+      var o = r.o, pad = 10, lh = 28, fn = '23px ' + F;
+      var cells = [
+        { t: String(o.broj), font: 'bold 30px ' + F, sub: o.vrsta === 'drugo' ? (o.opis || '') : '' },
+        { t: o.ime || '' }, { t: o.telefon || '' }, { t: hasArr(o) ? arrText(o) : '' },
+        { k: kidMode(o) === 'ne' ? 'bez' : (o.iskidano ? 'da' : 'ne') }, { t: o.napomena || '' }, { p: !!o.preuzeto }
+      ];
+      var hgt = 48;
+      cells.forEach(function(c, idx){
+        if (c.t == null) return;
+        c.lines = wrap(c.t, cols[idx][1] - 2 * pad, c.font || fn);
+        if (c.sub) c.subl = wrap(c.sub, cols[idx][1] - 2 * pad, '18px ' + F);
+        var h = pad * 2 + c.lines.length * lh + (c.subl ? c.subl.length * 22 : 0);
+        if (h > hgt) hgt = h;
+      });
+      if (y + hgt > H - M) newPage();
+      var x = M;
+      cells.forEach(function(c, idx){
+        var cw = cols[idx][1];
+        if (c.lines) {
+          g.font = c.font || fn; g.fillStyle = '#000';
+          c.lines.forEach(function(l, n){ g.fillText(l, x + pad, y + pad + n * lh); });
+          if (c.subl) { g.font = '18px ' + F; c.subl.forEach(function(l, n){ g.fillText(l, x + pad, y + pad + c.lines.length * lh + n * 22); }); }
+        } else if (c.k) {
+          if (c.k === 'bez') { g.font = fn; g.fillText('bez', x + pad, y + pad); } else box(x + pad, y + pad, c.k === 'da');
+        } else box(x + pad, y + pad, c.p);
+        line(); g.strokeRect(x, y, cw, hgt);
+        x += cw;
+      });
+      y += hgt;
+    });
+    pages.push(cv.toDataURL('image/jpeg', 0.9));
+    var pdf = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' });
+    pages.forEach(function(img, n){
+      if (n) pdf.addPage();
+      pdf.addImage(img, 'JPEG', 0, 0, 595.28, 841.89);
+      if (pages.length > 1) { pdf.setFontSize(8); pdf.text((n + 1) + ' / ' + pages.length, 595.28 - 34, 841.89 - 18, { align: 'right' }); }
+    });
+    var name = 'spisak-' + String(cur.ime).toLowerCase().replace(/[^a-z0-9čćžšđ]+/g, '-').replace(/^-+|-+$/g, '') + '.pdf';
+    return new File([pdf.output('blob')], name, { type: 'application/pdf' });
   }
-  /* Štampa cijelog spiska izabranog događaja. Na iPhoneu, kad je aplikacija na početnom ekranu,
-     spisak se otvara kao posebna stranica (tamo štampa radi pouzdano). */
+  function jeIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+  function mozeDijeliti(f){ try { return !!(f && navigator.canShare && navigator.canShare({ files: [f] })); } catch(e){ return false; } }
+  /* Štampa: na iPhoneu preko menija za dijeljenje (tamo je „Štampaj“), drugdje običan prozor za štampu. */
   function doPrint(){
-    if (!curSession()) { setMsg2('Nema događaja za štampu.', true); return; }
-    if (window.navigator.standalone === true) {
-      var url = URL.createObjectURL(new Blob([printDoc()], { type: 'text/html;charset=utf-8' }));
-      var w = window.open(url, '_blank');
-      if (!w) location.href = url;
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 120000);
-      return;
+    if (!curSession()) { csvMsg('Nema događaja za štampu.', true); return; }
+    if (jeIOS()) {
+      var f = spisakPdf();
+      if (f && mozeDijeliti(f)) {
+        csvMsg('U meniju koji se otvori izaberi „Štampaj“ (Print).');
+        navigator.share({ files: [f], title: f.name }).then(function(){ csvMsg(''); }, function(err){
+          if (!err || err.name !== 'AbortError') csvMsg('Spisak nije otvoren. Pokušaj „Sačuvaj spisak (PDF)“.', true);
+        });
+        return;
+      }
     }
     $('printArea').innerHTML = '<style>' + PCSS + '@page{margin:12mm}</style>' + printBody();
-    try { window.print(); } catch(e){ csvMsg('Štampa nije dostupna. Preuzmi spisak pa ga odštampaj iz fajla.', true); }
+    try { window.print(); } catch(e){ csvMsg('Štampa nije dostupna. Sačuvaj spisak kao PDF pa ga odštampaj.', true); }
   }
   $('printBtn').addEventListener('click', doPrint);
-  $('printBtn2').addEventListener('click', doPrint);
   $('printDlBtn').addEventListener('click', async function(){
-    var cur = curSession(); if (!cur) return;
-    var doc = '<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(cur.ime) + '</title>' +
-      '<style>body{margin:16px;background:#fff}' + PCSS + '@media print{body{margin:0}}</style></head><body>' + printBody() +
-      '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print()}catch(e){}},300)});<\/script></body></html>';
-    var name = 'spisak-' + String(cur.ime).toLowerCase().replace(/[^a-z0-9čćžšđ]+/g, '-').replace(/^-+|-+$/g, '') + '.html';
-    try {
-      var dl = window.claude ? await window.claude.use('downloads') : null;
-      if (!dl) { csvMsg('Preuzimanje nije dostupno u ovom prikazu.', true); return; }
-      await dl.save({ filename: name, data: doc });
-      csvMsg('Spisak je preuzet. Otvori fajl i odštampaj ga.');
-    } catch(err){
-      if (err && err.code === 'declined') return;
-      csvMsg(err && (err.code === 'rejected_extension' || err.code === 'extension_not_enabled')
-        ? 'Ovaj format fajla nije dozvoljen. Koristi CSV tabelu.' : 'Spisak nije sačuvan.', true);
+    var f = spisakPdf();
+    if (!f) { csvMsg('PDF nije napravljen. Provjeri internet pa osvježi aplikaciju.', true); return; }
+    if (jeIOS() && mozeDijeliti(f)) {
+      try { await navigator.share({ files: [f], title: f.name }); csvMsg(''); }
+      catch(err){ if (!err || err.name !== 'AbortError') csvMsg('Spisak nije sačuvan.', true); }
+      return;
     }
+    try {
+      var dl = await window.claude.use('downloads');
+      await dl.save({ filename: f.name, data: f });
+      csvMsg('Spisak (PDF) je preuzet.');
+    } catch(err){ csvMsg('Spisak nije sačuvan.', true); }
   });
 
   /* ---------- istorija: učitava se samo najnovije, staro se može obrisati ---------- */

@@ -515,8 +515,6 @@ body.locked .wrap{display:none}
 .pinrow2 .field{text-align:center; letter-spacing:.3em}
 @media (max-width:380px){ .pinrow2{grid-template-columns:1fr} }
 /* štampa */
-.printbar{display:flex; align-items:center; justify-content:center; gap:8px; height:46px; flex:0 0 auto}
-.printbar svg{width:20px; height:20px}
 #printArea{display:none}
 @media print{
   body{background:#fff !important; color:#000 !important; padding:0 !important}
@@ -689,8 +687,6 @@ body.locked .wrap{display:none}
       <div class="c-r"><dt>Bez kidanja</dt><dd id="kT">0</dd></div>
     </dl>
 
-    <button class="btn sec printbar" id="printBtn2" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Štampaj spisak događaja</button>
-
     <div class="search">
       <label class="l" for="q">Pretraga po broju ili imenu kupca</label>
       <div class="qrow"><span class="qwrap"><input class="field" id="q" type="search" inputmode="numeric" placeholder="npr. 7, Marko ili hodnik" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="qx" id="qx" aria-label="Obriši pretragu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button></span><button type="button" class="qkb" id="qkb" aria-label="Promijeni tastaturu">abc</button></div>
@@ -730,7 +726,7 @@ body.locked .wrap{display:none}
       <dl class="sumgrid" id="sumGrid"></dl>
       <div class="actions">
         <button class="btn sec" id="printBtn" type="button">Štampaj spisak</button>
-        <button class="btn sec" id="printDlBtn" type="button">Preuzmi spisak za štampu</button>
+        <button class="btn sec" id="printDlBtn" type="button">Sačuvaj spisak (PDF)</button>
         <button class="btn sec" id="csvBtn" type="button">Preuzmi tabelu (CSV)</button>
       </div>
       <p class="msg" id="csvMsg" role="status"></p>
@@ -875,6 +871,7 @@ body.locked .wrap{display:none}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 </body>
