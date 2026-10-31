@@ -450,7 +450,7 @@
       acts = '<div class="acts">' +
         '<button class="status" type="button" data-act="toggle" aria-pressed="' + done + '">' + (done ? '✓ Preuzeto' : 'Označi preuzeto') + '</button>' +
         (kidMode(o) === 'ne' ? '' : '<button class="status" type="button" data-act="kid" aria-pressed="' + d + '">' + (d ? '✓ Iskidano' : 'Označi iskidano') + '</button>') +
-        (pruneAllowed() ? '<span class="acts-r"><button class="ghost" type="button" data-act="edit">Izmijeni</button>' +
+        (canEditOrders() ? '<span class="acts-r"><button class="ghost" type="button" data-act="edit">Izmijeni</button>' +
         '<button class="ghost danger' + (conf ? ' confirm' : '') + '" type="button" data-act="del">' + (conf ? 'Potvrdi brisanje' : 'Obriši') + '</button></span>' : '') +
       '</div>';
     }
@@ -696,7 +696,7 @@
       seen.push({ v: xe.v, b: xe.b });
     }
 
-    if (S.editing && !pruneAllowed()) { setMsg('Izmjenu može samo vlasnik.', true); return; }
+    if (S.editing && !canEditOrders()) { setMsg('Nemaš dozvolu za izmjenu upisa. Javi se vlasniku.', true); return; }
     var btn = $('submit'); btn.disabled = true;
     var saved = [];
     try {
@@ -744,8 +744,8 @@
           ? { preuzeto: false, preuzetoU: 0, preuzeo: '', preuzeoIme: '' }
           : { preuzeto: true, preuzetoU: Date.now(), preuzeo: ME.id || '', preuzeoIme: S.worker });
       } catch(err){ writeFailed(err); }
-    } else if ((act === 'edit' || act === 'del') && !pruneAllowed()) {
-      setMsg2('Izmjenu i brisanje može samo vlasnik.', true);
+    } else if ((act === 'edit' || act === 'del') && !canEditOrders()) {
+      setMsg2('Nemaš dozvolu za izmjenu i brisanje. Javi se vlasniku.', true);
     } else if (act === 'edit') {
       S.editing = id; S.vrsta = o.vrsta; S.kid = kidMode(o); S.touched = true;
       document.getElementById('vr-' + o.vrsta).checked = true;
@@ -1110,6 +1110,12 @@
   /* Vlasnik je prijavljeni nalog sa ulogom vlasnik (provjerava i baza). */
   function ownerStaff(){ return null; }
   function pruneAllowed(){ return S.mode === 'local' || !!ME.isOwner; }
+  /* Izmjenu i brisanje upisa radi vlasnik i radnici kojima je to dozvolio (u Osoblju). */
+  function canEditOrders(){
+    if (pruneAllowed()) return true;
+    var me = STAFF.filter(function(p){ return p.id === ME.id; })[0];
+    return !!(me && me.urednik);
+  }
   var pruneT = null;
   $('histPrune').addEventListener('click', function(){
     if (!pruneAllowed()) return;
@@ -1520,8 +1526,9 @@
       setHTML($('staffList'), STAFF.length ? STAFF.map(function(p){
         var c = S.staffConfirm === p.id, pe = S.pinEdit === p.id;
         var own = p.uloga === 'vlasnik';
-        return '<li class="srow" data-id="' + esc(p.id) + '"><span class="sname">' + esc(p.ime) + '<small>' + (own ? 'vlasnik' : 'radnik') + '</small></span>' +
-          '<span class="sbtns"><button class="ghost" type="button" data-sact="big" aria-pressed="' + !!p.krupno + '">' + (p.krupno ? '✓ Krupna slova' : 'Krupna slova') + '</button>' +
+        return '<li class="srow" data-id="' + esc(p.id) + '"><span class="sname">' + esc(p.ime) + '<small>' + (own ? 'vlasnik' : (p.urednik ? 'radnik · mijenja i briše upise' : 'radnik')) + '</small></span>' +
+          '<span class="sbtns">' + (own ? '' : '<button class="ghost" type="button" data-sact="urednik" aria-pressed="' + !!p.urednik + '">' + (p.urednik ? '✓ Mijenja i briše' : 'Mijenja i briše') + '</button>') +
+          '<button class="ghost" type="button" data-sact="big" aria-pressed="' + !!p.krupno + '">' + (p.krupno ? '✓ Krupna slova' : 'Krupna slova') + '</button>' +
           (own ? '' : '<button class="ghost danger' + (c ? ' confirm' : '') + '" type="button" data-sact="del">' + (c ? 'Potvrdi uklanjanje' : 'Ukloni') + '</button>') + '</span></li>';
       }).join('') : '<li class="note">Još nema radnika. Dodaj prvo ime ispod.</li>');
     }
@@ -1547,7 +1554,7 @@
   }
   function setWorker(ime){
     S.worker = ime; S.pinFor = null; S.changing = false; S.tries = 0;
-    if (S.editing && !pruneAllowed()) resetForm();
+    if (S.editing && !canEditOrders()) resetForm();
     try { localStorage.setItem(LSW, ime); } catch(x){}
     setMsg(''); setMsg2(''); render();
   }
@@ -1629,6 +1636,12 @@
         clearTimeout(staffTimer);
         staffTimer = setTimeout(function(){ S.staffConfirm = null; render(); }, 4000);
       }
+    } else if (act === 'urednik' && p && p.uloga !== 'vlasnik') {
+      try {
+        await staffRef.doc(p.id).update({ urednik: !p.urednik });
+        setStaffMsg(p.urednik ? p.ime + ' više ne može mijenjati ni brisati upise.' : p.ime + ' sada može mijenjati i brisati upise.');
+      } catch(err){ setStaffMsg('Nije sačuvano. Provjeri internet i pokušaj ponovo.', true); }
+      render();
     } else if (act === 'big' && p) {
       try {
         if (S.mode === 'db') await staffRef.doc(p.id).update({ krupno: !p.krupno });

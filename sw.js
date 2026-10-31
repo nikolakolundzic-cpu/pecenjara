@@ -1,5 +1,5 @@
 /* Čuva aplikaciju na telefonu da se otvori i bez interneta. Podatke čuva Firebase. */
-const VERZIJA = 'pecenje-v6';
+const VERZIJA = 'pecenje-v7';
 const OSNOVA = ['./', 'index.html', 'app.js', 'shim.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'vendor/jspdf.umd.min.js'];
 

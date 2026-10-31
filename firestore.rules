@@ -10,6 +10,10 @@ service cloud.firestore {
     function jeRadnik() {
       return prijavljen() && exists(/databases/$(database)/documents/osoblje/$(request.auth.uid));
     }
+    // Radnik kome je vlasnik u Osoblju dozvolio da mijenja i briše upise.
+    function jeUrednik() {
+      return jeRadnik() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('urednik', false) == true;
+    }
 
     // Prvo pokretanje: prvi prijavljeni postavlja sebe za vlasnika, kasnije se ne može promijeniti.
     match /config/vlasnik {
@@ -25,13 +29,13 @@ service cloud.firestore {
     }
 
     // Pečenja: radnici upisuju i označavaju preuzeto/iskidano/mjesto.
-    // Izmjenu podataka (broj, ime, telefon...) i brisanje radi samo vlasnik.
+    // Izmjenu podataka (broj, ime, telefon...) i brisanje radi vlasnik i radnik sa dozvolom.
     match /porudzbine/{id} {
       allow read, create: if jeRadnik();
-      allow update: if jeVlasnik() || (jeRadnik() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+      allow update: if jeVlasnik() || jeUrednik() || (jeRadnik() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
         ['vrsta', 'broj', 'ime', 'telefon', 'napomena', 'opis', 'sesija', 'kidanje', 'zaKidanje',
          'dolazi', 'dolaziDatum', 'kreirano', 'upisao', 'upisaoIme', 'datum', 'grupa']));
-      allow delete: if jeVlasnik();
+      allow delete: if jeVlasnik() || jeUrednik();
     }
 
     match /istorija/{id} {
