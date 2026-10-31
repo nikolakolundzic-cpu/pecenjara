@@ -281,7 +281,7 @@ ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; ga
 .sname{display:flex; flex-direction:column; min-width:0}
 .sname small{color:var(--muted); font-size:13px}
 .sbtns{display:flex; gap:8px; flex-wrap:wrap}
-.ghost[data-sact="urednik"][aria-pressed="true"], .ghost[data-sact="big"][aria-pressed="true"]{border-color:var(--ok); color:var(--ok); font-weight:600}
+.ghost[data-sact="pregled"][aria-pressed="true"], .ghost[data-sact="urednik"][aria-pressed="true"], .ghost[data-sact="big"][aria-pressed="true"]{border-color:var(--ok); color:var(--ok); font-weight:600}
 .pinedit{flex:1 1 100%; display:flex; gap:8px; flex-wrap:wrap; padding-bottom:6px}
 .pinedit .btn{height:46px; flex:0 0 auto; padding:0 16px; font-size:16px}
 
@@ -481,6 +481,9 @@ a.sesstaff[aria-current]{border-color:var(--ink)}
 .tab:focus-visible{outline-offset:-5px; outline-color:var(--ink)}
 @media (max-width:420px){ .tab{font-size:21px; gap:7px} .tab svg{width:20px; height:20px} }
 html.big .tab{height:64px; font-size:24px}
+/* Događaj bez dozvole: samo prikaz, bez otvaranja */
+a.sesstaff.nolink{cursor:default}
+a.sesstaff.nolink .sesgo{display:none}
 /* sitni detalji */
 h1{display:flex; align-items:center; gap:8px}
 h1 .mark{width:.9em; height:.9em; flex:0 0 auto; color:var(--ember)}

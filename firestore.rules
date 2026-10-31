@@ -10,6 +10,10 @@ service cloud.firestore {
     function jeRadnik() {
       return prijavljen() && exists(/databases/$(database)/documents/osoblje/$(request.auth.uid));
     }
+    // Radnik kome je vlasnik u Osoblju dozvolio da vidi događaje i istoriju.
+    function jePregled() {
+      return jeRadnik() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('pregled', false) == true;
+    }
     // Radnik kome je vlasnik u Osoblju dozvolio da mijenja i briše upise.
     function jeUrednik() {
       return jeRadnik() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('urednik', false) == true;
@@ -38,8 +42,10 @@ service cloud.firestore {
       allow delete: if jeVlasnik() || jeUrednik();
     }
 
+    // Istoriju upisuju svi (svaka radnja se bilježi), a čitaju samo vlasnik i radnici sa dozvolom.
     match /istorija/{id} {
-      allow read, create, update: if jeRadnik();
+      allow create: if jeRadnik();
+      allow read, update: if jeVlasnik() || jePregled();
       allow delete: if jeVlasnik();
     }
     match /sesije/{id} {
