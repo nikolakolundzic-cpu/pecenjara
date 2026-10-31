@@ -515,6 +515,8 @@ body.locked .wrap{display:none}
 .pinrow2 .field{text-align:center; letter-spacing:.3em}
 @media (max-width:380px){ .pinrow2{grid-template-columns:1fr} }
 /* štampa */
+.printbar{display:flex; align-items:center; justify-content:center; gap:8px; height:46px; flex:0 0 auto}
+.printbar svg{width:20px; height:20px}
 #printArea{display:none}
 @media print{
   body{background:#fff !important; color:#000 !important; padding:0 !important}
@@ -686,6 +688,8 @@ body.locked .wrap{display:none}
       <div class="c-ok"><dt>Iskidano</dt><dd id="kD">0</dd></div>
       <div class="c-r"><dt>Bez kidanja</dt><dd id="kT">0</dd></div>
     </dl>
+
+    <button class="btn sec printbar" id="printBtn2" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Štampaj spisak događaja</button>
 
     <div class="search">
       <label class="l" for="q">Pretraga po broju ili imenu kupca</label>

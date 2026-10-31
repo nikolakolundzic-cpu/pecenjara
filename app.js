@@ -943,7 +943,7 @@
   var PCSS = '.pa{font:11pt Arial,Helvetica,sans-serif;color:#000;background:#fff}' +
     '.pa h1{font-size:18pt;margin:0 0 4pt}.pa p{margin:0 0 8pt;font-size:10pt}' +
     '.pa table{width:100%;border-collapse:collapse}.pa th,.pa td{border:1px solid #777;padding:3pt 5pt;text-align:left;vertical-align:top;font-size:10pt}' +
-    '.pa th{background:#e8e8e8}.pa td.n{font-weight:bold;font-size:13pt;white-space:nowrap}.pa tr{break-inside:avoid}' +
+    '.pa td:nth-child(3){white-space:nowrap}.pa th{background:#e8e8e8}.pa td.n{font-weight:bold;font-size:13pt;white-space:nowrap}.pa tr{break-inside:avoid}' +
     '.pa .bx{display:inline-block;width:11pt;height:11pt;border:1.5pt solid #000;vertical-align:middle}' +
     '.pa tr.g td{background:#f3f3f3;font-weight:bold;text-transform:uppercase;letter-spacing:.05em}';
   function printBody(){
@@ -964,11 +964,28 @@
       (body || '<tr><td colspan="7">Nema upisa.</td></tr>') + '</tbody></table></div>';
   }
   function csvMsg(t, isErr){ var m = $('csvMsg'); m.textContent = t || ''; m.className = 'msg' + (isErr ? ' err' : ''); }
-  $('printBtn').addEventListener('click', function(){
-    if (!curSession()) return;
-    $('printArea').innerHTML = '<style>' + PCSS + '</style>' + printBody();
+  function printDoc(){
+    var cur = curSession();
+    return '<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(cur.ime) + '</title>' +
+      '<style>body{margin:16px;background:#fff}' + PCSS + '@page{margin:12mm}@media print{body{margin:0}}</style></head><body>' + printBody() +
+      '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.print()}catch(e){}},300)});<\/script></body></html>';
+  }
+  /* Štampa cijelog spiska izabranog događaja. Na iPhoneu, kad je aplikacija na početnom ekranu,
+     spisak se otvara kao posebna stranica (tamo štampa radi pouzdano). */
+  function doPrint(){
+    if (!curSession()) { setMsg2('Nema događaja za štampu.', true); return; }
+    if (window.navigator.standalone === true) {
+      var url = URL.createObjectURL(new Blob([printDoc()], { type: 'text/html;charset=utf-8' }));
+      var w = window.open(url, '_blank');
+      if (!w) location.href = url;
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 120000);
+      return;
+    }
+    $('printArea').innerHTML = '<style>' + PCSS + '@page{margin:12mm}</style>' + printBody();
     try { window.print(); } catch(e){ csvMsg('Štampa nije dostupna. Preuzmi spisak pa ga odštampaj iz fajla.', true); }
-  });
+  }
+  $('printBtn').addEventListener('click', doPrint);
+  $('printBtn2').addEventListener('click', doPrint);
   $('printDlBtn').addEventListener('click', async function(){
     var cur = curSession(); if (!cur) return;
     var doc = '<!doctype html><html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(cur.ime) + '</title>' +
