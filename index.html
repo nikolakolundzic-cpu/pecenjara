@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Evidencija pečenja</title>
-<meta name="theme-color" content="#111417">
+<meta name="theme-color" content="#f1efec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121110" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -23,8 +24,8 @@ img{max-width:100%}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 /* Layout: one narrow column built for a phone at the counter: title, two page tabs (Upis / Kidanje), shared date bar, then the page itself. Rows are ticket-style: number stub on the left, customer in the middle, actions on the right. */
 :root{
@@ -574,162 +575,171 @@ body.locked .wrap{display:none}
 }
 
 /* =====================================================================
-   REDIZAJN: pult pečenjare.
-   Čelik i emajl: hladna siva podloga, crna slova, tvrde ivice, bez mekih
-   „kartica“. Jedini akcenat je boja žara. Svaki upis je cedulja sa brojem:
-   lijevo otkinuti dio sa brojem, perforacija i zarezi kao na pravoj cedulji.
-   Slova: Big Shoulders Display (natpisi i brojevi), Archivo (tekst),
-   IBM Plex Mono (vrijeme i telefoni).
+   DIZAJN: „žar i dim“.
+   Mirna, topla neutralna podloga, bijele površine sa blagom sjenkom,
+   zaobljene ivice. Jedan akcenat: bakarni sjaj žara (dugme Dodaj,
+   izabrana stranica, brojevi koji traže pažnju). Upis je i dalje cedulja
+   sa brojem (perforacija i zarezi), ali fina, ne grubo kockasta.
+   Slova: Bricolage Grotesque (natpisi i brojevi), Figtree (tekst).
    ===================================================================== */
 :root{
-  --bg:#e3e6e8; --surface:#f6f7f7; --field:#ffffff; --ink:#111417; --muted:#5b646c; --line:#c4cbd0;
-  --ember:#b5480a; --on-ember:#ffffff; --zar:#e0640f;
-  --jagnje:#4d6a24; --prase:#a8355c; --drugo:#86570c; --ok:#1d6a3a; --danger:#a5180f;
-  --f-display:'Big Shoulders Display','Arial Narrow',Arial,sans-serif;
-  --f-body:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
-  --r:3px;
+  --bg:#f1efec; --surface:#ffffff; --field:#faf9f7; --ink:#1d1a18; --muted:#736c66; --line:#e6e2dd;
+  --ember:#b5521c; --on-ember:#ffffff; --zar:#c45e22; --zar2:#9f4314;
+  --jagnje:#55702c; --prase:#ad3d63; --drugo:#8f5e12; --ok:#23764a; --danger:#b3261e;
+  --f-display:'Bricolage Grotesque','Arial Narrow',Arial,sans-serif;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'Figtree',system-ui,-apple-system,sans-serif;
+  --r:16px; --r-s:11px;
+  --sh:0 1px 2px rgba(40,28,18,.06), 0 6px 20px rgba(40,28,18,.06);
+  --sh-lift:0 2px 6px rgba(40,28,18,.08), 0 12px 32px rgba(40,28,18,.10);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0e1113; --surface:#171b1e; --field:#1e2327; --ink:#eef1f3; --muted:#97a1a9; --line:#2d343a;
-    --ember:#ff8a3d; --on-ember:#1a0b02; --zar:#ff8a3d;
-    --jagnje:#a9c47a; --prase:#ef93b2; --drugo:#e2b45a; --ok:#7fcf98; --danger:#ff8a80;
+    --bg:#121110; --surface:#1c1a18; --field:#242120; --ink:#f4efe9; --muted:#a59c94; --line:#33302c;
+    --ember:#ef9356; --on-ember:#1c0e05; --zar:#e47a3b; --zar2:#c35c22;
+    --jagnje:#aac77c; --prase:#f095b4; --drugo:#e6b863; --ok:#7fd29d; --danger:#ff8c83;
+    --sh:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px rgba(0,0,0,.35);
+    --sh-lift:0 1px 0 rgba(255,255,255,.04) inset, 0 14px 36px rgba(0,0,0,.45);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0e1113; --surface:#171b1e; --field:#1e2327; --ink:#eef1f3; --muted:#97a1a9; --line:#2d343a;
-  --ember:#ff8a3d; --on-ember:#1a0b02; --zar:#ff8a3d;
-  --jagnje:#a9c47a; --prase:#ef93b2; --drugo:#e2b45a; --ok:#7fcf98; --danger:#ff8a80;
+  --bg:#121110; --surface:#1c1a18; --field:#242120; --ink:#f4efe9; --muted:#a59c94; --line:#33302c;
+  --ember:#ef9356; --on-ember:#1c0e05; --zar:#e47a3b; --zar2:#c35c22;
+  --jagnje:#aac77c; --prase:#f095b4; --drugo:#e6b863; --ok:#7fd29d; --danger:#ff8c83;
+  --sh:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px rgba(0,0,0,.35);
+  --sh-lift:0 1px 0 rgba(255,255,255,.04) inset, 0 14px 36px rgba(0,0,0,.45);
   color-scheme:dark;
 }
 
-body{font-family:var(--f-body); letter-spacing:.005em}
-h1{font-family:var(--f-display); font-weight:800; letter-spacing:.02em; font-size:34px}
+body{font-family:var(--f-body); background:var(--bg); -webkit-font-smoothing:antialiased}
+h1{font-family:var(--f-display); font-weight:800; letter-spacing:-.01em; text-transform:none; font-size:30px}
 h1 .mark{color:var(--zar)}
-@media (max-width:420px){ h1{font-size:28px} }
+@media (max-width:420px){ h1{font-size:26px} }
 
-/* tvrde ivice svuda */
+/* površine: zaobljene, bez okvira, sa blagom sjenkom */
 .tabs,.tally,form,.row,.sescard,.staffadmin,.staff,a.sesstaff,.empty,.notice,.hsum,.undo,.sesitem,.settings,.lcard,.bcbox{border-radius:var(--r)}
-.btn,.status,.ghost,.locb,.cpb,.chip,.field,.seg label,.qkb,.lchips button{border-radius:2px}
-.row,.tabs,.tally,form,.settings,.sescard{box-shadow:none}
+.tally,form,.row,.sescard,.settings,.lcard,.hdrrow > .staff,a.sesstaff{background:var(--surface); border:1px solid var(--line); box-shadow:var(--sh)}
+.btn,.status,.ghost,.locb,.cpb,.field,.seg label,.qkb,.lchips button,.themebtn{border-radius:var(--r-s)}
+.chip{border-radius:999px}
 
-/* zaglavlje: Radi / Događaj kao dvije pločice sa natpisom */
-.hdrrow > .staff, a.sesstaff{background:var(--surface); border:1px solid var(--line)}
-.sesl, .staff .l{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.06em; color:var(--ember)}
-.sesm{font-family:var(--f-mono); font-size:11.5px}
-.curname .sesn, .sesn{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.01em}
-a.sesstaff[aria-current]{border-color:var(--ink); background:var(--surface)}
+/* zaglavlje */
+.sesl, .staff .l{font-family:var(--f-body); font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ember)}
+.sesm{font-family:var(--f-body); font-size:12.5px; font-variant-numeric:tabular-nums}
+.curname .sesn, .sesn{font-family:var(--f-display); font-weight:700; font-size:23px; letter-spacing:-.01em; text-transform:none}
+a.sesstaff[aria-current]{box-shadow:0 0 0 2px var(--zar), var(--sh)}
+.themebtn{background:var(--surface); border:1px solid var(--line); box-shadow:var(--sh); display:grid; place-items:center}
+.themebtn svg{width:20px; height:20px}
 
-/* Upis / Pretraga: emajlirana tabla */
-.tabs{border:2px solid var(--ink); background:var(--surface); box-shadow:none}
-.tab{font-family:var(--f-display); font-weight:800; font-size:27px; letter-spacing:.06em; color:var(--ink); height:58px}
-.tab + .tab{border-left:2px solid var(--ink)}
-.tab:hover{background:color-mix(in srgb, var(--ink) 6%, var(--surface))}
-.tab[aria-current="page"], .tab[aria-current="page"]:hover{background:var(--ink); color:var(--bg)}
-.tab .n{background:var(--zar); color:#fff; border-radius:2px; font-family:var(--f-mono); font-size:14px; font-weight:500; min-width:24px; height:24px}
-.tab[aria-current="page"] .n{background:var(--zar); color:#fff}
-@media (max-width:420px){ .tab{font-size:23px} }
+/* Upis / Pretraga: segmentirani prekidač */
+.tabs{background:var(--surface); border:1px solid var(--line); box-shadow:var(--sh); padding:5px; gap:5px; display:grid; grid-template-columns:1fr 1fr}
+.tab{font-family:var(--f-display); font-weight:700; font-size:21px; letter-spacing:.01em; text-transform:none; color:var(--muted); height:52px; border-radius:12px}
+.tab + .tab{border-left:0}
+.tab:hover{background:color-mix(in srgb, var(--ink) 5%, transparent); color:var(--ink)}
+.tab[aria-current="page"], .tab[aria-current="page"]:hover{background:linear-gradient(180deg, var(--zar), var(--zar2)); color:#fff; box-shadow:0 4px 14px color-mix(in srgb, var(--zar) 35%, transparent)}
+.tab .n{background:var(--ink); color:var(--surface); border-radius:999px; font-family:var(--f-body); font-size:12px; font-weight:700; min-width:22px; height:22px}
+.tab[aria-current="page"] .n{background:rgba(255,255,255,.95); color:var(--zar2)}
+@media (max-width:420px){ .tab{font-size:19px} }
 
-/* zbir: brojevi kao na tabli */
-.tally{background:var(--surface); border:1px solid var(--line)}
-.tally dt{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.04em; text-transform:uppercase; color:var(--muted)}
-.tally dd{font-family:var(--f-display); font-weight:800; font-size:44px; line-height:.95}
+/* zbir */
+.tally dt{font-family:var(--f-body); font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:none; color:var(--muted)}
+.tally dd{font-family:var(--f-display); font-weight:700; font-size:38px; line-height:1; letter-spacing:-.02em}
+.tally div + div{border-left:1px solid var(--line)}
 
 /* forma */
-form{background:var(--surface); border:1px solid var(--line)}
-legend,label.l{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.06em}
-.field{border:1.5px solid var(--line); background:var(--field)}
-.field:focus{border-color:var(--ink); outline:none; box-shadow:0 0 0 3px color-mix(in srgb, var(--zar) 35%, transparent)}
-input.num{font-family:var(--f-display); font-weight:800; font-size:32px}
-.seg label{font-family:var(--f-display); font-weight:800; letter-spacing:.05em; border-width:2px}
-.btn{font-family:var(--f-body); font-weight:700; letter-spacing:.01em}
-#submit{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.08em; text-transform:uppercase; background:var(--zar); color:#fff}
-.btn.sec{border:1.5px solid var(--ink); color:var(--ink); background:transparent}
+legend,label.l{font-family:var(--f-body); font-size:11.5px; font-weight:700; letter-spacing:.1em}
+.field{border:1px solid var(--line); background:var(--field); transition:border-color .15s, box-shadow .15s}
+.field:focus{border-color:var(--zar); outline:none; box-shadow:0 0 0 4px color-mix(in srgb, var(--zar) 18%, transparent)}
+input.num{font-family:var(--f-display); font-weight:700; font-size:28px}
+.seg label{font-family:var(--f-display); font-weight:700; letter-spacing:.01em; text-transform:none; border:1px solid var(--line); background:var(--field)}
+.seg input:checked + label.j, .seg input:checked + label.p, .seg input:checked + label.o,
+.seg input:checked + label.k, .seg input:checked + label.n{border-width:2px}
+.btn{font-family:var(--f-body); font-weight:700}
+.btn.sec{border:1px solid var(--line); color:var(--ink); background:var(--surface)}
+#submit{font-family:var(--f-display); font-weight:700; font-size:22px; letter-spacing:.02em; text-transform:none;
+  background:linear-gradient(180deg, var(--zar), var(--zar2)); color:#fff; box-shadow:0 6px 18px color-mix(in srgb, var(--zar) 32%, transparent)}
+.ghost{border:1px solid var(--line); background:var(--surface)}
 
-/* filteri: četvrtaste oznake, ne pilule */
-.chip{border:1.5px solid var(--line); background:var(--surface); font-weight:600}
-.chip b{border-radius:2px; font-family:var(--f-mono); font-weight:500; background:var(--bg)}
-.chip[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
-.chip[aria-pressed="true"] b{background:color-mix(in srgb, var(--bg) 20%, transparent)}
+/* filteri */
+.chip{border:1px solid var(--line); background:var(--surface); font-weight:600; box-shadow:0 1px 2px rgba(40,28,18,.04)}
+.chip b{border-radius:999px; font-family:var(--f-body); font-weight:700; background:var(--bg)}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+.chip[aria-pressed="true"] b{background:color-mix(in srgb, var(--surface) 20%, transparent)}
 
 /* ===== cedulja sa brojem ===== */
-.row{background:var(--surface); border:1px solid var(--line); overflow:hidden}
-.stub{position:relative; border-right:2px dashed color-mix(in srgb, var(--ink) 28%, transparent); padding-top:8px; padding-bottom:8px}
+.row{overflow:hidden}
+.stub{position:relative; border-right:1.5px dashed var(--line)}
+.t-jagnje .stub{background:linear-gradient(180deg, color-mix(in srgb, var(--jagnje) 12%, var(--surface)), color-mix(in srgb, var(--jagnje) 6%, var(--surface)))}
+.t-prase .stub{background:linear-gradient(180deg, color-mix(in srgb, var(--prase) 12%, var(--surface)), color-mix(in srgb, var(--prase) 6%, var(--surface)))}
+.t-drugo .stub{background:linear-gradient(180deg, color-mix(in srgb, var(--drugo) 12%, var(--surface)), color-mix(in srgb, var(--drugo) 6%, var(--surface)))}
 .row{position:relative; --stubw:58px}
 @media (min-width:560px){ .row{--stubw:62px} }
 html.big .row{--stubw:72px}
 @media (min-width:560px){ html.big .row{--stubw:80px} }
-.row::before,.row::after{content:""; position:absolute; left:calc(var(--stubw) - 8px); width:16px; height:16px; border-radius:50%; background:var(--bg); border:1px solid var(--line); z-index:1; pointer-events:none}
-.row::before{top:-9px}
-.row::after{bottom:-9px}
-.stub-l{font-family:var(--f-mono); font-size:10px; font-weight:500; letter-spacing:.06em}
-.stub-n{font-family:var(--f-display); font-weight:800; font-size:40px; line-height:.9}
-.name{font-family:var(--f-body); font-weight:700; font-size:18px}
-.when{font-family:var(--f-mono); font-size:11.5px}
-.note{border-left:3px solid var(--zar)}
-.tag{border-radius:2px; font-family:var(--f-mono); font-weight:500; font-size:10.5px; letter-spacing:.04em; padding:2px 6px;
-  background:transparent; border:1.5px solid currentColor}
-.tag.r{border:1.5px solid var(--danger); background:transparent}
-.tag.ok{background:color-mix(in srgb, var(--ok) 12%, transparent)}
-.row.done{background:color-mix(in srgb, var(--surface) 50%, var(--bg))}
-.row.done .stub{opacity:.6}
-.status{border:2px solid var(--ember); color:var(--ember); font-weight:700}
-.status[aria-pressed="true"]{border-color:var(--ok); color:var(--ok); background:color-mix(in srgb, var(--ok) 10%, transparent)}
-.ghost{border:1.5px solid var(--line); font-weight:600}
-.cpb{font-family:var(--f-mono); font-weight:500; border:1.5px solid var(--line); background:var(--field); gap:6px}
-.cpb svg{width:14px; height:14px; flex:0 0 auto}
-.locb{border:1.5px solid var(--line); font-weight:600}
-.locb[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--bg)}
+.row::before,.row::after{content:""; position:absolute; left:calc(var(--stubw) - 7px); width:14px; height:14px; border-radius:50%; background:var(--bg); z-index:1; pointer-events:none}
+.row::before{top:-7px; box-shadow:inset 0 -1px 0 var(--line)}
+.row::after{bottom:-7px; box-shadow:inset 0 1px 0 var(--line)}
+.stub-l{font-family:var(--f-body); font-size:10px; font-weight:700; letter-spacing:.1em}
+.stub-n{font-family:var(--f-display); font-weight:800; font-size:36px; line-height:1; letter-spacing:-.02em}
+.name{font-family:var(--f-body); font-weight:700; font-size:17.5px; letter-spacing:-.005em}
+.when{font-family:var(--f-body); font-size:12px; font-variant-numeric:tabular-nums}
+.note{border-left:3px solid var(--zar); border-radius:2px}
+.tag{border-radius:999px; font-family:var(--f-body); font-weight:700; font-size:10.5px; letter-spacing:.06em; padding:2px 8px;
+  border:0; background:color-mix(in srgb, currentColor 11%, transparent)}
+.tag.r{border:0; background:color-mix(in srgb, var(--danger) 13%, transparent)}
+.row.done{background:color-mix(in srgb, var(--surface) 70%, var(--bg)); box-shadow:none}
+.row.done .stub{opacity:.65}
+.status{border:1.5px solid color-mix(in srgb, var(--ember) 70%, transparent); color:var(--ember); background:color-mix(in srgb, var(--ember) 6%, transparent); font-weight:700}
+.status[aria-pressed="true"]{border-color:color-mix(in srgb, var(--ok) 60%, transparent); color:var(--ok); background:color-mix(in srgb, var(--ok) 10%, transparent)}
+.cpb{font-family:var(--f-body); font-weight:600; border:1px solid var(--line); background:var(--field); gap:6px; font-variant-numeric:tabular-nums}
+.cpb svg{width:14px; height:14px; flex:0 0 auto; color:var(--ember)}
+.locb{border:1px solid var(--line); background:var(--field); font-weight:600}
+.locb[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--surface)}
 
 /* po satu dolaska */
-.hhead{font-family:var(--f-display); font-weight:800; font-size:24px}
+.hhead{font-family:var(--f-display); font-weight:700; font-size:20px; text-transform:none; letter-spacing:0}
 
 /* događaji */
-.sescard h2, .lcard h2{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.04em}
-.sumgrid dt{font-family:var(--f-body)}
-.sumgrid dd{font-family:var(--f-mono); font-weight:500}
-.sesitem .sin{font-family:var(--f-display); font-weight:800; font-size:26px}
-.sesitem .sim{font-family:var(--f-mono); font-size:11.5px}
-.sesitem .sbad{border-radius:2px; font-family:var(--f-mono); font-weight:500; background:var(--zar); color:#fff}
-.sescnt span{border-radius:2px; font-family:var(--f-mono); font-weight:500; font-size:12px}
-.wt th{font-family:var(--f-mono); font-weight:500}
-.wt td{font-family:var(--f-mono)}
-.wt td:first-child{font-family:var(--f-body)}
+.sescard h2, .lcard h2{font-family:var(--f-display); font-weight:700; font-size:21px; letter-spacing:-.005em; text-transform:none}
+.sumgrid dd{font-family:var(--f-body); font-weight:700; font-variant-numeric:tabular-nums}
+.sesitem{background:var(--field); border:1px solid var(--line)}
+.sesitem.on{border:2px solid var(--zar); background:color-mix(in srgb, var(--zar) 5%, var(--field))}
+.sesitem .sin{font-family:var(--f-display); font-weight:700; font-size:21px; text-transform:none}
+.sesitem .sim{font-family:var(--f-body); font-size:12.5px}
+.sesitem .sbad{border-radius:999px; font-family:var(--f-body); font-weight:700; background:var(--zar); color:#fff}
+.sescnt span{border-radius:999px; font-family:var(--f-body); font-weight:600; font-size:12.5px; border:1px solid var(--line); background:var(--surface)}
+.wt th{font-family:var(--f-body); font-weight:700}
+.wt td{font-family:var(--f-body); font-variant-numeric:tabular-nums}
 
 /* podešavanja */
-.settings{background:var(--surface); border:1px solid var(--line)}
-.settings > summary{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.06em}
+.settings > summary{font-family:var(--f-display); font-weight:700; font-size:21px; letter-spacing:-.005em; text-transform:none}
 .settings > summary svg{color:var(--zar)}
-.staffadmin summary{font-family:var(--f-display); font-weight:800; letter-spacing:.06em}
-.setgrid .staffadmin{background:var(--field); border:1px solid var(--line)}
+.staffadmin summary{font-family:var(--f-display); font-weight:700; letter-spacing:0; text-transform:none}
+.setgrid .staffadmin{background:var(--field); border:1px solid var(--line); border-radius:12px}
 
 /* dijalozi */
-.bcwhat{font-family:var(--f-display); font-weight:800}
-.callnum{font-family:var(--f-mono); font-weight:500}
-.kgrid .btn{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.04em; background:var(--ok)}
-.bcbox{border:2px solid var(--ink); box-shadow:none}
+.bconf{background:rgba(18,14,10,.5); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px)}
+.bcbox{border:1px solid var(--line); box-shadow:var(--sh-lift)}
+.bcwhat{font-family:var(--f-display); font-weight:800; letter-spacing:-.02em}
+.callnum{font-family:var(--f-display); font-weight:700; font-variant-numeric:tabular-nums}
+.kgrid .btn{font-family:var(--f-display); font-weight:700; font-size:22px; background:var(--ok); color:#fff}
 
 /* prijava */
-.lico{border-radius:6px; box-shadow:none; border:1px solid var(--line)}
-.lbox h1{font-size:36px}
-.lchips button{font-family:var(--f-display); font-weight:800; font-size:26px; border:2px solid var(--line)}
-.lpin .who{font-family:var(--f-display); font-weight:800; font-size:34px}
-.lpin .field{font-family:var(--f-display); font-weight:800}
-.lfoot, .lpin .l{font-family:var(--f-mono)}
-
-/* tema */
-.themebtn{display:grid; place-items:center; border:1.5px solid var(--line)}
-.themebtn svg{width:20px; height:20px}
+.lico{border-radius:18px; box-shadow:var(--sh-lift); border:0}
+.lbox h1{font-size:32px}
+.lchips button{font-family:var(--f-display); font-weight:700; font-size:21px; border:1px solid var(--line); background:var(--field)}
+.lchips button:active{border-color:var(--zar)}
+.lpin .who{font-family:var(--f-display); font-weight:800; font-size:30px}
+.lpin .field{font-family:var(--f-display); font-weight:700}
+.lfoot, .lpin .l{font-family:var(--f-body)}
 
 /* toast i nova verzija */
-.toast{border-radius:var(--r); border:2px solid var(--ok); box-shadow:none; font-family:var(--f-body)}
-.novaverzija button{border-radius:2px}
+.toast{border-radius:14px; border:0; background:var(--ink); color:var(--surface); box-shadow:var(--sh-lift); font-family:var(--f-body)}
+.novaverzija button{border-radius:var(--r-s)}
 
-/* krupna slova: isti stil, veće */
-html.big .stub-n{font-size:48px}
-html.big .name{font-size:22px}
+/* krupna slova */
+html.big .stub-n{font-size:46px}
+html.big .name{font-size:21px}
 html.big .tag{font-size:12.5px}
 html.big .when{font-size:14px}
 </style>
