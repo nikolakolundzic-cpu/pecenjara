@@ -584,7 +584,7 @@ body.locked .wrap{display:none}
    ===================================================================== */
 :root{
   --bg:#f1efec; --surface:#ffffff; --field:#faf9f7; --ink:#1d1a18; --muted:#736c66; --line:#e6e2dd;
-  --ember:#b5521c; --on-ember:#ffffff; --zar:#c45e22; --zar2:#9f4314;
+  --ember:#87672a; --on-ember:#ffffff; --zar:#b08d48; --zar2:#86672b;
   --jagnje:#55702c; --prase:#ad3d63; --drugo:#8f5e12; --ok:#23764a; --danger:#b3261e;
   --f-display:'Bricolage Grotesque','Arial Narrow',Arial,sans-serif;
   --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -596,7 +596,7 @@ body.locked .wrap{display:none}
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#121110; --surface:#1c1a18; --field:#242120; --ink:#f4efe9; --muted:#a59c94; --line:#33302c;
-    --ember:#ef9356; --on-ember:#1c0e05; --zar:#e47a3b; --zar2:#c35c22;
+    --ember:#d9b673; --on-ember:#1b1408; --zar:#d2ae68; --zar2:#a98744;
     --jagnje:#aac77c; --prase:#f095b4; --drugo:#e6b863; --ok:#7fd29d; --danger:#ff8c83;
     --sh:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px rgba(0,0,0,.35);
     --sh-lift:0 1px 0 rgba(255,255,255,.04) inset, 0 14px 36px rgba(0,0,0,.45);
@@ -605,7 +605,7 @@ body.locked .wrap{display:none}
 }
 :root[data-theme="dark"]{
   --bg:#121110; --surface:#1c1a18; --field:#242120; --ink:#f4efe9; --muted:#a59c94; --line:#33302c;
-  --ember:#ef9356; --on-ember:#1c0e05; --zar:#e47a3b; --zar2:#c35c22;
+  --ember:#d9b673; --on-ember:#1b1408; --zar:#d2ae68; --zar2:#a98744;
   --jagnje:#aac77c; --prase:#f095b4; --drugo:#e6b863; --ok:#7fd29d; --danger:#ff8c83;
   --sh:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px rgba(0,0,0,.35);
   --sh-lift:0 1px 0 rgba(255,255,255,.04) inset, 0 14px 36px rgba(0,0,0,.45);
@@ -636,7 +636,7 @@ a.sesstaff[aria-current]{box-shadow:0 0 0 2px var(--zar), var(--sh)}
 .tab{font-family:var(--f-display); font-weight:700; font-size:21px; letter-spacing:.01em; text-transform:none; color:var(--muted); height:52px; border-radius:12px}
 .tab + .tab{border-left:0}
 .tab:hover{background:color-mix(in srgb, var(--ink) 5%, transparent); color:var(--ink)}
-.tab[aria-current="page"], .tab[aria-current="page"]:hover{background:linear-gradient(180deg, var(--zar), var(--zar2)); color:#fff; box-shadow:0 4px 14px color-mix(in srgb, var(--zar) 35%, transparent)}
+.tab[aria-current="page"], .tab[aria-current="page"]:hover{background:linear-gradient(180deg, var(--zar), var(--zar2)); color:var(--on-ember); box-shadow:0 4px 14px color-mix(in srgb, var(--zar) 35%, transparent)}
 .tab .n{background:var(--ink); color:var(--surface); border-radius:999px; font-family:var(--f-body); font-size:12px; font-weight:700; min-width:22px; height:22px}
 .tab[aria-current="page"] .n{background:rgba(255,255,255,.95); color:var(--zar2)}
 @media (max-width:420px){ .tab{font-size:19px} }
@@ -657,7 +657,7 @@ input.num{font-family:var(--f-display); font-weight:700; font-size:28px}
 .btn{font-family:var(--f-body); font-weight:700}
 .btn.sec{border:1px solid var(--line); color:var(--ink); background:var(--surface)}
 #submit{font-family:var(--f-display); font-weight:700; font-size:22px; letter-spacing:.02em; text-transform:none;
-  background:linear-gradient(180deg, var(--zar), var(--zar2)); color:#fff; box-shadow:0 6px 18px color-mix(in srgb, var(--zar) 32%, transparent)}
+  background:linear-gradient(180deg, var(--zar), var(--zar2)); color:var(--on-ember); box-shadow:0 6px 18px color-mix(in srgb, var(--zar) 32%, transparent)}
 .ghost{border:1px solid var(--line); background:var(--surface)}
 
 /* filteri */
@@ -706,7 +706,7 @@ html.big .row{--stubw:72px}
 .sesitem.on{border:2px solid var(--zar); background:color-mix(in srgb, var(--zar) 5%, var(--field))}
 .sesitem .sin{font-family:var(--f-display); font-weight:700; font-size:21px; text-transform:none}
 .sesitem .sim{font-family:var(--f-body); font-size:12.5px}
-.sesitem .sbad{border-radius:999px; font-family:var(--f-body); font-weight:700; background:var(--zar); color:#fff}
+.sesitem .sbad{border-radius:999px; font-family:var(--f-body); font-weight:700; background:var(--zar); color:var(--on-ember)}
 .sescnt span{border-radius:999px; font-family:var(--f-body); font-weight:600; font-size:12.5px; border:1px solid var(--line); background:var(--surface)}
 .wt th{font-family:var(--f-body); font-weight:700}
 .wt td{font-family:var(--f-body); font-variant-numeric:tabular-nums}
