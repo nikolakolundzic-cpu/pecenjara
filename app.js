@@ -36,7 +36,7 @@
   var S = {
     vrsta: 'jagnje', kid: 'odmah', filter: 'sve', editing: null, touched: false, confirmId: null,
     loaded: false, mode: 'loading', view: 'upis', kfilter: 'sve', q: '',
-    worker: '', staffConfirm: null, staffLoaded: false, pinFor: null, changing: false, tries: 0, lockUntil: 0, pinEdit: null,
+    worker: '', staffConfirm: null, staffLoaded: false, changing: false,
     sesija: null, sesLoaded: false, histLimit: 150, histFull: true
   };
   var orders = [];
@@ -79,7 +79,6 @@
     if (more) ul.innerHTML += '<li class="hrow"><button class="ghost" type="button" id="histMore">Prikaži starije</button></li>';
     var pa = pruneAllowed();
     $('pruneBox').hidden = !pa;
-    $('prunePin').hidden = true;
     $('pruneNote').textContent = pa ? '' : 'Stare zapise može brisati samo vlasnik.';
   }
   $('histAdmin').addEventListener('toggle', function(){ if (this.open) renderHist(); });
@@ -1144,7 +1143,6 @@
     }, function(){});
   }
   /* Vlasnik je prijavljeni nalog sa ulogom vlasnik (provjerava i baza). */
-  function ownerStaff(){ return null; }
   function pruneAllowed(){ return S.mode === 'local' || !!ME.isOwner; }
   /* Događaje (zbir, spisak, ranije događaje) i istoriju vidi vlasnik i radnici kojima je to dozvolio. */
   function canView(){
@@ -1170,29 +1168,6 @@
     }
     b.classList.remove('confirm'); b.textContent = 'Obriši zapise starije od 6 mjeseci';
     doPrune();
-  });
-  $('prunePinNo').addEventListener('click', function(){ $('prunePin').hidden = true; $('prunePinIn').value = ''; setHistMsg(''); });
-  $('prunePinIn').addEventListener('input', function(){ this.value = this.value.replace(/\D/g, '').slice(0, 4); });
-  $('prunePinIn').addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); $('prunePinOk').click(); } });
-  $('prunePinOk').addEventListener('click', async function(){
-    if (!pruneAllowed()) return;
-    var o = ownerStaff();
-    if (o && o.pinHash) {
-      var wait = Math.ceil((pruneLock - Date.now()) / 1000);
-      if (wait > 0) { setHistMsg('Previše pokušaja. Sačekaj još ' + wait + ' s.', true); return; }
-      var pin = $('prunePinIn').value.trim();
-      if (!/^\d{4}$/.test(pin)) { setHistMsg('Upiši četiri cifre.', true); return; }
-      var h;
-      try { h = await hashPin(o.id, pin); } catch(e){ setHistMsg('Ovaj pretraživač ne podržava PIN.', true); return; }
-      $('prunePinIn').value = '';
-      if (h !== o.pinHash) {
-        if (++pruneTries >= 5) { pruneTries = 0; pruneLock = Date.now() + 30000; setHistMsg('Pogrešan PIN. Previše pokušaja, sačekaj 30 sekundi.', true); }
-        else setHistMsg('Pogrešan PIN.', true);
-        return;
-      }
-    }
-    pruneTries = 0; $('prunePin').hidden = true;
-    await doPrune();
   });
   async function doPrune(){
     var btn = $('histPrune');
@@ -1572,7 +1547,6 @@
   function saveStaffLocal(){ try { localStorage.setItem(LSS, JSON.stringify(STAFF)); } catch(e){} }
   function renderStaff(){
     if (S.staffLoaded && S.worker && !STAFF.some(function(p){ return p.ime === S.worker; })) { if (window.__odjava) { window.__odjava('Tvoj nalog je uklonjen. Javi se vlasniku.'); return; } S.worker = ''; }
-    if (S.pinFor && !STAFF.some(function(p){ return p.id === S.pinFor; })) S.pinFor = null;
     var meW = S.worker ? STAFF.filter(function(p){ return p.ime === S.worker; })[0] : null;
     document.documentElement.classList.toggle('big', !!(meW && meW.krupno));
     var bar = $('staffBar');
@@ -1580,22 +1554,13 @@
     bar.hidden = !show;
     var logged = !!S.worker;
     bar.classList.toggle('need', show && !logged);
-    $('staffLabel').hidden = logged || !!S.pinFor;
-    $('staffChips').hidden = logged || !!S.pinFor;
-    $('pinBox').hidden = logged || !S.pinFor;
     $('staffCur').hidden = !logged;
     if (logged) {
       $('curName').textContent = S.worker;
       setHTML($('curActs'), S.changing
         ? '<span class="ask">Promijeniti radnika?</span><button class="btn" type="button" data-cact="yes">Da, promijeni</button><button class="btn sec" type="button" data-cact="no">Ne</button>'
         : '<button class="ghost" type="button" data-cact="ask">Promijeni radnika</button>');
-    } else if (S.pinFor) {
-      var pf = STAFF.filter(function(p){ return p.id === S.pinFor; })[0];
-      if (pf) $('pinLabel').textContent = 'PIN za ' + pf.ime;
     }
-    setHTML($('staffChips'), STAFF.map(function(p){
-      return '<button class="chip" type="button" data-id="' + esc(p.id) + '" aria-pressed="false">' + esc(p.ime) + '</button>';
-    }).join(''));
     var adm = (S.mode === 'db' && ME.canEdit && !ro()) || S.mode === 'local';
     $('staffAdmin').hidden = !adm || !pruneAllowed();
     $('dataAdmin').hidden = !pruneAllowed();
@@ -1611,10 +1576,9 @@
     $('kdAdmin').hidden = !adm;
     renderKdAdmin();
     renderHist();
-    var keepInput = S.pinEdit && $('pinNew');
-    if (!keepInput) {
+    {
       setHTML($('staffList'), STAFF.length ? STAFF.map(function(p){
-        var c = S.staffConfirm === p.id, pe = S.pinEdit === p.id;
+        var c = S.staffConfirm === p.id;
         var own = p.uloga === 'vlasnik';
         return '<li class="srow" data-id="' + esc(p.id) + '"><span class="sname">' + esc(p.ime) + '<small>' + (own ? 'vlasnik' : ['radnik'].concat(p.urednik ? ['mijenja i briše'] : [], p.pregled ? ['vidi događaje'] : []).join(' · ')) + '</small></span>' +
           '<span class="sbtns">' + (own ? '' : '<button class="ghost" type="button" data-sact="pregled" aria-pressed="' + !!p.pregled + '">' + (p.pregled ? '✓ Vidi događaje i istoriju' : 'Vidi događaje i istoriju') + '</button>') +
@@ -1625,57 +1589,10 @@
     }
   }
   function setStaffMsg(t, isErr){ var m = $('staffMsg'); m.textContent = t || ''; m.className = 'msg' + (isErr ? ' err' : ''); }
-  async function addStaff(ime){
-    if (S.mode === 'db') { await staffRef.add({ ime: ime, kreirano: Date.now() }); }
-    else { STAFF.push({ id: 'l' + Date.now().toString(36), ime: ime, kreirano: Date.now() }); saveStaffLocal(); render(); }
-  }
   async function removeStaff(id){
     if (S.mode === 'db') { await staffRef.doc(id).delete(); }
     else { STAFF = STAFF.filter(function(p){ return p.id !== id; }); saveStaffLocal(); render(); }
   }
-  function setPinMsg(t, isErr){ var m = $('pinMsg'); m.textContent = t || ''; m.className = 'msg' + (isErr ? ' err' : ''); }
-  async function hashPin(id, pin){
-    var data = new TextEncoder().encode('pecenjara:' + id + ':' + pin);
-    var buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0' + b.toString(16)).slice(-2); }).join('');
-  }
-  async function setPin(p, h){
-    if (S.mode === 'db') { await staffRef.doc(p.id).update({ pinHash: h }); }
-    else { p.pinHash = h; saveStaffLocal(); }
-  }
-  function setWorker(ime){
-    S.worker = ime; S.pinFor = null; S.changing = false; S.tries = 0;
-    if (S.editing && !canEditOrders()) resetForm();
-    try { localStorage.setItem(LSW, ime); } catch(x){}
-    setMsg(''); setMsg2(''); render();
-  }
-  $('staffChips').addEventListener('click', function(e){
-    var b = e.target.closest('button[data-id]'); if (!b) return;
-    var p = STAFF.filter(function(x){ return x.id === b.getAttribute('data-id'); })[0]; if (!p) return;
-    setMsg(''); setMsg2('');
-    if (!p.pinHash) { setWorker(p.ime); return; }
-    S.pinFor = p.id; $('pinIn').value = ''; setPinMsg('');
-    render();
-    try { $('pinIn').focus(); } catch(x){}
-  });
-  async function submitPin(){
-    var p = STAFF.filter(function(x){ return x.id === S.pinFor; })[0]; if (!p) return;
-    var wait = Math.ceil((S.lockUntil - Date.now()) / 1000);
-    if (wait > 0) { setPinMsg('Previše pokušaja. Sačekaj još ' + wait + ' s.', true); return; }
-    var pin = $('pinIn').value.trim();
-    if (!/^\d{4}$/.test(pin)) { setPinMsg('Upiši četiri cifre.', true); return; }
-    var h;
-    try { h = await hashPin(p.id, pin); } catch(err){ setPinMsg('Ovaj pretraživač ne podržava PIN.', true); return; }
-    $('pinIn').value = '';
-    if (h === p.pinHash) { setPinMsg(''); setWorker(p.ime); return; }
-    S.tries++;
-    if (S.tries >= 5) { S.tries = 0; S.lockUntil = Date.now() + 30000; setPinMsg('Pogrešan PIN. Previše pokušaja, sačekaj 30 sekundi.', true); }
-    else { setPinMsg('Pogrešan PIN. Pokušaj ponovo.', true); }
-  }
-  $('pinOk').addEventListener('click', submitPin);
-  $('pinIn').addEventListener('keydown', function(e){ if (e.key === 'Enter') { e.preventDefault(); submitPin(); } });
-  $('pinIn').addEventListener('input', function(){ this.value = this.value.replace(/\D/g, '').slice(0, 4); });
-  $('pinCancel').addEventListener('click', function(){ S.pinFor = null; $('pinIn').value = ''; setPinMsg(''); render(); });
   var changeTimer = null;
   $('curActs').addEventListener('click', function(e){
     var b = e.target.closest('button[data-cact]'); if (!b) return;
@@ -1688,7 +1605,7 @@
       S.changing = false;
     } else if (a === 'yes') {
       if (window.__odjava) { window.__odjava(); return; }
-      S.changing = false; S.worker = ''; S.pinFor = null;
+      S.changing = false; S.worker = '';
       if (S.editing) resetForm();
       try { localStorage.removeItem(LSW); } catch(x){}
     }
@@ -1745,22 +1662,6 @@
         else { p.krupno = !p.krupno; saveStaffLocal(); }
         setStaffMsg((p.krupno && S.mode !== 'db') || (!p.krupno && S.mode === 'db') ? p.ime + ' sada ima krupna slova.' : p.ime + ' više nema krupna slova.');
       } catch(err){ setStaffMsg('Nije sačuvano. Samo vlasnik i urednici mogu mijenjati osoblje.', true); }
-      render();
-    } else if (act === 'pin') {
-      var old = $('pinNew'); if (old) old.remove();
-      S.pinEdit = S.pinEdit === id ? null : id;
-      setStaffMsg('');
-      render();
-      if (S.pinEdit) { try { $('pinNew').focus(); } catch(x){} }
-    } else if (act === 'pinsave' && p) {
-      var pin = $('pinNew').value.trim();
-      if (!/^\d{4}$/.test(pin)) { setStaffMsg('PIN mora imati tačno četiri cifre.', true); return; }
-      try { await setPin(p, await hashPin(p.id, pin)); S.pinEdit = null; setStaffMsg('PIN za ' + p.ime + ' je sačuvan.'); }
-      catch(err){ setStaffMsg('PIN nije sačuvan. Samo korisnici sa pravom uređivanja mogu da ga postave.', true); }
-      render();
-    } else if (act === 'pinclear' && p) {
-      try { await setPin(p, ''); S.pinEdit = null; setStaffMsg('PIN za ' + p.ime + ' je uklonjen.'); }
-      catch(err){ setStaffMsg('PIN nije uklonjen.', true); }
       render();
     }
   });
