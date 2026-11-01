@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Evidencija pečenja</title>
-<meta name="theme-color" content="#c0401a">
+<meta name="theme-color" content="#111417">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -23,8 +23,8 @@ img{max-width:100%}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
 <style>
 /* Layout: one narrow column built for a phone at the counter: title, two page tabs (Upis / Kidanje), shared date bar, then the page itself. Rows are ticket-style: number stub on the left, customer in the middle, actions on the right. */
 :root{
@@ -572,6 +572,166 @@ body.locked .wrap{display:none}
   body > *:not(#printArea){display:none !important}
   #printArea{display:block !important}
 }
+
+/* =====================================================================
+   REDIZAJN: pult pečenjare.
+   Čelik i emajl: hladna siva podloga, crna slova, tvrde ivice, bez mekih
+   „kartica“. Jedini akcenat je boja žara. Svaki upis je cedulja sa brojem:
+   lijevo otkinuti dio sa brojem, perforacija i zarezi kao na pravoj cedulji.
+   Slova: Big Shoulders Display (natpisi i brojevi), Archivo (tekst),
+   IBM Plex Mono (vrijeme i telefoni).
+   ===================================================================== */
+:root{
+  --bg:#e3e6e8; --surface:#f6f7f7; --field:#ffffff; --ink:#111417; --muted:#5b646c; --line:#c4cbd0;
+  --ember:#b5480a; --on-ember:#ffffff; --zar:#e0640f;
+  --jagnje:#4d6a24; --prase:#a8355c; --drugo:#86570c; --ok:#1d6a3a; --danger:#a5180f;
+  --f-display:'Big Shoulders Display','Arial Narrow',Arial,sans-serif;
+  --f-body:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --r:3px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1113; --surface:#171b1e; --field:#1e2327; --ink:#eef1f3; --muted:#97a1a9; --line:#2d343a;
+    --ember:#ff8a3d; --on-ember:#1a0b02; --zar:#ff8a3d;
+    --jagnje:#a9c47a; --prase:#ef93b2; --drugo:#e2b45a; --ok:#7fcf98; --danger:#ff8a80;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1113; --surface:#171b1e; --field:#1e2327; --ink:#eef1f3; --muted:#97a1a9; --line:#2d343a;
+  --ember:#ff8a3d; --on-ember:#1a0b02; --zar:#ff8a3d;
+  --jagnje:#a9c47a; --prase:#ef93b2; --drugo:#e2b45a; --ok:#7fcf98; --danger:#ff8a80;
+  color-scheme:dark;
+}
+
+body{font-family:var(--f-body); letter-spacing:.005em}
+h1{font-family:var(--f-display); font-weight:800; letter-spacing:.02em; font-size:34px}
+h1 .mark{color:var(--zar)}
+@media (max-width:420px){ h1{font-size:28px} }
+
+/* tvrde ivice svuda */
+.tabs,.tally,form,.row,.sescard,.staffadmin,.staff,a.sesstaff,.empty,.notice,.hsum,.undo,.sesitem,.settings,.lcard,.bcbox{border-radius:var(--r)}
+.btn,.status,.ghost,.locb,.cpb,.chip,.field,.seg label,.qkb,.lchips button{border-radius:2px}
+.row,.tabs,.tally,form,.settings,.sescard{box-shadow:none}
+
+/* zaglavlje: Radi / Događaj kao dvije pločice sa natpisom */
+.hdrrow > .staff, a.sesstaff{background:var(--surface); border:1px solid var(--line)}
+.sesl, .staff .l{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.06em; color:var(--ember)}
+.sesm{font-family:var(--f-mono); font-size:11.5px}
+.curname .sesn, .sesn{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.01em}
+a.sesstaff[aria-current]{border-color:var(--ink); background:var(--surface)}
+
+/* Upis / Pretraga: emajlirana tabla */
+.tabs{border:2px solid var(--ink); background:var(--surface); box-shadow:none}
+.tab{font-family:var(--f-display); font-weight:800; font-size:27px; letter-spacing:.06em; color:var(--ink); height:58px}
+.tab + .tab{border-left:2px solid var(--ink)}
+.tab:hover{background:color-mix(in srgb, var(--ink) 6%, var(--surface))}
+.tab[aria-current="page"], .tab[aria-current="page"]:hover{background:var(--ink); color:var(--bg)}
+.tab .n{background:var(--zar); color:#fff; border-radius:2px; font-family:var(--f-mono); font-size:14px; font-weight:500; min-width:24px; height:24px}
+.tab[aria-current="page"] .n{background:var(--zar); color:#fff}
+@media (max-width:420px){ .tab{font-size:23px} }
+
+/* zbir: brojevi kao na tabli */
+.tally{background:var(--surface); border:1px solid var(--line)}
+.tally dt{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.04em; text-transform:uppercase; color:var(--muted)}
+.tally dd{font-family:var(--f-display); font-weight:800; font-size:44px; line-height:.95}
+
+/* forma */
+form{background:var(--surface); border:1px solid var(--line)}
+legend,label.l{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.06em}
+.field{border:1.5px solid var(--line); background:var(--field)}
+.field:focus{border-color:var(--ink); outline:none; box-shadow:0 0 0 3px color-mix(in srgb, var(--zar) 35%, transparent)}
+input.num{font-family:var(--f-display); font-weight:800; font-size:32px}
+.seg label{font-family:var(--f-display); font-weight:800; letter-spacing:.05em; border-width:2px}
+.btn{font-family:var(--f-body); font-weight:700; letter-spacing:.01em}
+#submit{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.08em; text-transform:uppercase; background:var(--zar); color:#fff}
+.btn.sec{border:1.5px solid var(--ink); color:var(--ink); background:transparent}
+
+/* filteri: četvrtaste oznake, ne pilule */
+.chip{border:1.5px solid var(--line); background:var(--surface); font-weight:600}
+.chip b{border-radius:2px; font-family:var(--f-mono); font-weight:500; background:var(--bg)}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.chip[aria-pressed="true"] b{background:color-mix(in srgb, var(--bg) 20%, transparent)}
+
+/* ===== cedulja sa brojem ===== */
+.row{background:var(--surface); border:1px solid var(--line); overflow:hidden}
+.stub{position:relative; border-right:2px dashed color-mix(in srgb, var(--ink) 28%, transparent); padding-top:8px; padding-bottom:8px}
+.row{position:relative; --stubw:58px}
+@media (min-width:560px){ .row{--stubw:62px} }
+html.big .row{--stubw:72px}
+@media (min-width:560px){ html.big .row{--stubw:80px} }
+.row::before,.row::after{content:""; position:absolute; left:calc(var(--stubw) - 8px); width:16px; height:16px; border-radius:50%; background:var(--bg); border:1px solid var(--line); z-index:1; pointer-events:none}
+.row::before{top:-9px}
+.row::after{bottom:-9px}
+.stub-l{font-family:var(--f-mono); font-size:10px; font-weight:500; letter-spacing:.06em}
+.stub-n{font-family:var(--f-display); font-weight:800; font-size:40px; line-height:.9}
+.name{font-family:var(--f-body); font-weight:700; font-size:18px}
+.when{font-family:var(--f-mono); font-size:11.5px}
+.note{border-left:3px solid var(--zar)}
+.tag{border-radius:2px; font-family:var(--f-mono); font-weight:500; font-size:10.5px; letter-spacing:.04em; padding:2px 6px;
+  background:transparent; border:1.5px solid currentColor}
+.tag.r{border:1.5px solid var(--danger); background:transparent}
+.tag.ok{background:color-mix(in srgb, var(--ok) 12%, transparent)}
+.row.done{background:color-mix(in srgb, var(--surface) 50%, var(--bg))}
+.row.done .stub{opacity:.6}
+.status{border:2px solid var(--ember); color:var(--ember); font-weight:700}
+.status[aria-pressed="true"]{border-color:var(--ok); color:var(--ok); background:color-mix(in srgb, var(--ok) 10%, transparent)}
+.ghost{border:1.5px solid var(--line); font-weight:600}
+.cpb{font-family:var(--f-mono); font-weight:500; border:1.5px solid var(--line); background:var(--field); gap:6px}
+.cpb svg{width:14px; height:14px; flex:0 0 auto}
+.locb{border:1.5px solid var(--line); font-weight:600}
+.locb[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--bg)}
+
+/* po satu dolaska */
+.hhead{font-family:var(--f-display); font-weight:800; font-size:24px}
+
+/* događaji */
+.sescard h2, .lcard h2{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.04em}
+.sumgrid dt{font-family:var(--f-body)}
+.sumgrid dd{font-family:var(--f-mono); font-weight:500}
+.sesitem .sin{font-family:var(--f-display); font-weight:800; font-size:26px}
+.sesitem .sim{font-family:var(--f-mono); font-size:11.5px}
+.sesitem .sbad{border-radius:2px; font-family:var(--f-mono); font-weight:500; background:var(--zar); color:#fff}
+.sescnt span{border-radius:2px; font-family:var(--f-mono); font-weight:500; font-size:12px}
+.wt th{font-family:var(--f-mono); font-weight:500}
+.wt td{font-family:var(--f-mono)}
+.wt td:first-child{font-family:var(--f-body)}
+
+/* podešavanja */
+.settings{background:var(--surface); border:1px solid var(--line)}
+.settings > summary{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.06em}
+.settings > summary svg{color:var(--zar)}
+.staffadmin summary{font-family:var(--f-display); font-weight:800; letter-spacing:.06em}
+.setgrid .staffadmin{background:var(--field); border:1px solid var(--line)}
+
+/* dijalozi */
+.bcwhat{font-family:var(--f-display); font-weight:800}
+.callnum{font-family:var(--f-mono); font-weight:500}
+.kgrid .btn{font-family:var(--f-display); font-weight:800; font-size:26px; letter-spacing:.04em; background:var(--ok)}
+.bcbox{border:2px solid var(--ink); box-shadow:none}
+
+/* prijava */
+.lico{border-radius:6px; box-shadow:none; border:1px solid var(--line)}
+.lbox h1{font-size:36px}
+.lchips button{font-family:var(--f-display); font-weight:800; font-size:26px; border:2px solid var(--line)}
+.lpin .who{font-family:var(--f-display); font-weight:800; font-size:34px}
+.lpin .field{font-family:var(--f-display); font-weight:800}
+.lfoot, .lpin .l{font-family:var(--f-mono)}
+
+/* tema */
+.themebtn{display:grid; place-items:center; border:1.5px solid var(--line)}
+.themebtn svg{width:20px; height:20px}
+
+/* toast i nova verzija */
+.toast{border-radius:var(--r); border:2px solid var(--ok); box-shadow:none; font-family:var(--f-body)}
+.novaverzija button{border-radius:2px}
+
+/* krupna slova: isti stil, veće */
+html.big .stub-n{font-size:48px}
+html.big .name{font-size:22px}
+html.big .tag{font-size:12.5px}
+html.big .when{font-size:14px}
 </style>
 
 </head>
@@ -918,7 +1078,7 @@ body.locked .wrap{display:none}
     <p class="bcwhat callnum" id="callNum"></p>
     <p class="bcname" id="callWho"></p>
     <div class="callacts">
-      <a class="btn callyes" id="callYes" href="#">📞 Pozovi</a>
+      <a class="btn callyes" id="callYes" href="#"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:22px;height:22px;margin-right:8px"><path d="M6.6 3.5l2.6.4 1.3 3.7-1.9 1.4a12 12 0 0 0 6.4 6.4l1.4-1.9 3.7 1.3.4 2.6c-.2 1.3-1.3 2.3-2.7 2.2C9.6 19.1 4.9 14.4 4.4 6.2c-.1-1.4.9-2.5 2.2-2.7z" fill="currentColor"/></svg>Pozovi</a>
       <button class="btn sec" id="callNo" type="button">Odustani</button>
     </div>
   </div>

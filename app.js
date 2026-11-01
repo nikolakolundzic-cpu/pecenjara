@@ -281,8 +281,8 @@
     var what = o.vrsta === 'jagnje' ? 'jagnje' : (o.vrsta === 'prase' ? 'prase' : 'pečenje' + (o.opis ? ' (' + o.opis + ')' : ''));
     var sms = 'Poštovani, Vaše ' + what + ' broj ' + o.broj + ' je spremno za preuzimanje.';
     var smsSep = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) ? '&' : '?';
-    return '<div class="copy">' + (num ? '<button class="cpb" type="button" data-call="' + esc(num) + '" data-tel="' + esc(t) + '" data-who="' + esc(o.ime || '') + '" aria-label="Pozovi ' + esc(t) + '">📞 ' + esc(t) + '</button>' : '<span class="cpb">' + esc(t) + '</span>') +
-      (o.preuzeto || !num ? '' : '<a class="cpb" href="sms:' + esc(num) + smsSep + 'body=' + esc(encodeURIComponent(sms)) + '">💬 Pošalji SMS</a>') + '</div>';
+    return '<div class="copy">' + (num ? '<button class="cpb" type="button" data-call="' + esc(num) + '" data-tel="' + esc(t) + '" data-who="' + esc(o.ime || '') + '" aria-label="Pozovi ' + esc(t) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5l2.6.4 1.3 3.7-1.9 1.4a12 12 0 0 0 6.4 6.4l1.4-1.9 3.7 1.3.4 2.6c-.2 1.3-1.3 2.3-2.7 2.2C9.6 19.1 4.9 14.4 4.4 6.2c-.1-1.4.9-2.5 2.2-2.7z" fill="currentColor"/></svg>' + esc(t) + '</button>' : '<span class="cpb">' + esc(t) + '</span>') +
+      (o.preuzeto || !num ? '' : '<a class="cpb" href="sms:' + esc(num) + smsSep + 'body=' + esc(encodeURIComponent(sms)) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Pošalji SMS</a>') + '</div>';
   }
   function ro(){ return ME.canWrite === false; }
   function needWorker(){ return STAFF.length > 0 && !S.worker; }
@@ -1807,7 +1807,7 @@
   }
   function paintTheme(){
     var d = effTheme() === 'dark', b = $('themeBtn');
-    b.textContent = d ? '☀️' : '🌙';
+    b.innerHTML = d ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
     b.setAttribute('aria-label', d ? 'Svijetli prikaz' : 'Tamni prikaz');
     b.title = d ? 'Svijetli prikaz' : 'Tamni prikaz';
   }
