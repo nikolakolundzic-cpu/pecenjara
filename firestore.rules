@@ -10,7 +10,7 @@ service cloud.firestore {
     function jeRadnik() {
       return prijavljen() && exists(/databases/$(database)/documents/osoblje/$(request.auth.uid));
     }
-    // Radnik koji smije da upisuje (gost samo čita).
+    // Radnik sa punim radom (gost samo upisuje nova pečenja i gleda).
     function jeAktivan() {
       return jeRadnik() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('uloga', 'radnik') != 'gost';
     }
@@ -40,7 +40,7 @@ service cloud.firestore {
     // Izmjenu podataka (broj, ime, telefon...) i brisanje radi vlasnik i radnik sa dozvolom.
     match /porudzbine/{id} {
       allow read: if jeRadnik();
-      allow create: if jeAktivan();
+      allow create: if jeRadnik();          // i gost može da upiše novo pečenje
       allow update: if jeVlasnik() || jeUrednik() || (jeAktivan() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
         ['vrsta', 'broj', 'ime', 'telefon', 'napomena', 'opis', 'sesija', 'kidanje', 'zaKidanje',
          'dolazi', 'dolaziDatum', 'kreirano', 'upisao', 'upisaoIme', 'datum', 'grupa']));
@@ -49,7 +49,7 @@ service cloud.firestore {
 
     // Istoriju upisuju svi (svaka radnja se bilježi), a čitaju samo vlasnik i radnici sa dozvolom.
     match /istorija/{id} {
-      allow create: if jeAktivan();
+      allow create: if jeRadnik();
       allow read, update: if jeVlasnik() || jePregled();
       allow delete: if jeVlasnik();
     }
@@ -63,7 +63,7 @@ service cloud.firestore {
       allow write: if jeAktivan();
     }
     match /brojevi/{id} {
-      allow read, write: if jeAktivan();
+      allow read, write: if jeRadnik();   // kratko zaključavanje broja pri upisu
     }
   }
 }

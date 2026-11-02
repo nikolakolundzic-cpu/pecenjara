@@ -286,6 +286,8 @@
   }
   /* gost: samo pregled (bez upisa, zbirova, istorije i podešavanja) */
   function ro(){ return ME.canWrite === false || window.__pecenjeGost === true; }
+  /* gost smije samo da upiše novo pečenje; sve ostalo samo gleda */
+  function jeGost(){ return window.__pecenjeGost === true; }
   function needWorker(){ return STAFF.length > 0 && !S.worker; }
   function nameOf(id){
     if (!id) return '';
@@ -320,7 +322,8 @@
 
   /* ---------- render ---------- */
   function renderShell(day){
-    if (ro() && S.view !== 'kidanje') S.view = 'kidanje';
+    if (ro() && !jeGost() && S.view !== 'kidanje') S.view = 'kidanje';
+    if (jeGost() && S.view === 'sesije') S.view = 'upis';
     var cv = canView();
     if (!cv && S.staffLoaded && S.mode === 'db') {
       if (S.view === 'sesije') S.view = 'upis';
@@ -365,8 +368,8 @@
     });
 
     var cs = curSession();
-    $('f').hidden = ro() || !cs || !!cs.virtual;
-    $('roNote').hidden = !ro();
+    $('f').hidden = (ro() && !jeGost()) || !cs || !!cs.virtual;
+    $('roNote').hidden = !ro() || jeGost();
     var ns = $('noSes');
     ns.hidden = ro() || (!!cs && !cs.virtual) || !S.sesLoaded;
     ns.textContent = (!cs ? 'Još nema događaja. ' : 'Ovo su stari upisi bez događaja. ') +
@@ -504,7 +507,7 @@
   /* ---------- navigation ---------- */
   function setView(v){
     S.view = (v === 'kidanje' || (v === 'sesije' && canView())) ? v : 'upis';
-    if (ro()) S.view = 'kidanje';
+    if (ro() && !jeGost()) S.view = 'kidanje';
     render();
   }
   function viewFromHash(){
@@ -551,6 +554,7 @@
   }
   function hideSugg(){ $('sugg').hidden = true; $('ime').setAttribute('aria-expanded', 'false'); }
   function renderSugg(){
+    if (jeGost()) { hideSugg(); return; }   /* gost ne vidi ranije kupce i njihove telefone */
     var raw = $('ime').value.trim(), q = kupacKey(raw), digits = raw.replace(/\D/g, '');
     if (q.length < 2 || S.editing) { hideSugg(); return; }
     var list = Object.keys(KUPCI).map(function(k){ return KUPCI[k]; }).filter(function(c){
@@ -1585,7 +1589,7 @@
       setHTML($('staffList'), STAFF.length ? STAFF.map(function(p){
         var c = S.staffConfirm === p.id;
         var own = p.uloga === 'vlasnik', gost = p.uloga === 'gost';
-        return '<li class="srow" data-id="' + esc(p.id) + '"><span class="sname">' + esc(p.ime) + '<small>' + (own ? 'vlasnik' : gost ? 'gost · samo pregled' : ['radnik'].concat(p.urednik ? ['mijenja i briše'] : [], p.pregled ? ['vidi događaje'] : []).join(' · ')) + '</small></span>' +
+        return '<li class="srow" data-id="' + esc(p.id) + '"><span class="sname">' + esc(p.ime) + '<small>' + (own ? 'vlasnik' : gost ? 'gost · upis i pregled' : ['radnik'].concat(p.urednik ? ['mijenja i briše'] : [], p.pregled ? ['vidi događaje'] : []).join(' · ')) + '</small></span>' +
           '<span class="sbtns">' + (own || gost ? '' : '<button class="ghost" type="button" data-sact="pregled" aria-pressed="' + !!p.pregled + '">' + (p.pregled ? '✓ Vidi događaje i istoriju' : 'Vidi događaje i istoriju') + '</button>') +
           (own || gost ? '' : '<button class="ghost" type="button" data-sact="urednik" aria-pressed="' + !!p.urednik + '">' + (p.urednik ? '✓ Mijenja i briše' : 'Mijenja i briše') + '</button>') +
           '<button class="ghost" type="button" data-sact="big" aria-pressed="' + !!p.krupno + '">' + (p.krupno ? '✓ Krupna slova' : 'Krupna slova') + '</button>' +
@@ -1623,7 +1627,7 @@
     if (!/^\d{4}$/.test(pin)) { setStaffMsg('Upiši PIN od 4 cifre za novog radnika.', true); $('newStaffPin').focus(); return; }
     if (STAFF.some(function(p){ return norm(p.ime) === norm(ime); })) { setStaffMsg('Taj radnik već postoji.', true); return; }
     var btn = $('staffAdd'); btn.disabled = true; setStaffMsg('Dodajem…');
-    try { await window.__noviRadnik(ime, pin, uloga); $('newStaff').value = ''; $('newStaffPin').value = ''; $('newStaffUloga').value = 'radnik'; setStaffMsg(ime + (uloga === 'gost' ? ' je dodat(a) kao gost (samo pregled).' : ' je dodat(a).') + ' Ulazi sa PIN-om ' + pin + '.'); }
+    try { await window.__noviRadnik(ime, pin, uloga); $('newStaff').value = ''; $('newStaffPin').value = ''; $('newStaffUloga').value = 'radnik'; setStaffMsg(ime + (uloga === 'gost' ? ' je dodat(a) kao gost (upis i pregled).' : ' je dodat(a).') + ' Ulazi sa PIN-om ' + pin + '.'); }
     catch(err){ setStaffMsg('Dodavanje nije uspjelo. Provjeri internet i pokušaj ponovo.', true); }
     finally { btn.disabled = false; }
   }
