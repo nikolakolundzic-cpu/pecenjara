@@ -24,6 +24,9 @@ U repozitorijumu nema nijednog kupca, broja telefona ni PIN-a. Svi podaci su sam
 - **Radnik sa dozvolom „Mijenja i briše“** (vlasnik je uključuje u Osoblju): još i mijenja i briše upise.
 - **Radnik sa dozvolom „Vidi događaje i istoriju“**: otvara stranicu Događaj (zbir, po radniku, raniji događaji,
   štampa, CSV) i Istoriju. Bez te dozvole Događaj se samo prikazuje na vrhu, a istoriju baza ne daje.
+- **Gost** (vlasnik ga dodaje u Osoblju, uloga „Gost (samo pregled)“): vidi samo Pretragu i listu pečenja
+  (broj, ime, vrsta, kidanje, preuzeto, mjesto, dolazak). Ne vidi zbirove, brojeve u filterima, telefone,
+  događaje ni istoriju i ne može ništa upisati ni promijeniti; to brani i baza.
 - Bez prijave se ne vidi ništa osim imena radnika na ekranu za prijavu.
 
 Ovo ne provjerava samo aplikacija, nego i sama baza (`firestore.rules`).

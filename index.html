@@ -666,6 +666,11 @@ html.big .stub-n{font-size:46px}
 html.big .name{font-size:21px}
 html.big .tag{font-size:12.5px}
 html.big .when{font-size:14px}
+
+/* gost: samo pregled, bez zbirova i brojeva */
+html.gost #tabUpis{display:none}
+html.gost .tabs{grid-template-columns:1fr}
+html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost .hsum{display:none !important}
 </style>
 
 </head>
@@ -945,6 +950,7 @@ html.big .when{font-size:14px}
     <div class="staffform">
       <input class="field" id="newStaff" type="text" maxlength="40" placeholder="Ime radnika, npr. Milena" autocomplete="off">
       <input class="field num" id="newStaffPin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off" aria-label="PIN novog radnika" style="flex:0 0 110px; text-align:center; letter-spacing:.3em">
+      <select class="field" id="newStaffUloga" aria-label="Uloga" style="flex:1 1 150px"><option value="radnik">Radnik</option><option value="gost">Gost (samo pregled)</option></select>
       <button class="btn" id="staffAdd" type="button">Dodaj</button>
     </div>
     <p class="msg" id="staffMsg" role="status"></p>

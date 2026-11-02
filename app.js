@@ -275,6 +275,7 @@
     sel.value = keep || '';
   }
   function callHtml(o){
+    if (ro()) return '';
     var t = (o.telefon || '').trim(); if (!t) return '';
     var num = t.replace(/[^\d+]/g, '');
     var what = o.vrsta === 'jagnje' ? 'jagnje' : (o.vrsta === 'prase' ? 'prase' : 'pečenje' + (o.opis ? ' (' + o.opis + ')' : ''));
@@ -283,7 +284,8 @@
     return '<div class="copy">' + (num ? '<button class="cpb" type="button" data-call="' + esc(num) + '" data-tel="' + esc(t) + '" data-who="' + esc(o.ime || '') + '" aria-label="Pozovi ' + esc(t) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5l2.6.4 1.3 3.7-1.9 1.4a12 12 0 0 0 6.4 6.4l1.4-1.9 3.7 1.3.4 2.6c-.2 1.3-1.3 2.3-2.7 2.2C9.6 19.1 4.9 14.4 4.4 6.2c-.1-1.4.9-2.5 2.2-2.7z" fill="currentColor"/></svg>' + esc(t) + '</button>' : '<span class="cpb">' + esc(t) + '</span>') +
       (o.preuzeto || !num ? '' : '<a class="cpb" href="sms:' + esc(num) + smsSep + 'body=' + esc(encodeURIComponent(sms)) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Pošalji SMS</a>') + '</div>';
   }
-  function ro(){ return ME.canWrite === false; }
+  /* gost: samo pregled (bez upisa, zbirova, istorije i podešavanja) */
+  function ro(){ return ME.canWrite === false || window.__pecenjeGost === true; }
   function needWorker(){ return STAFF.length > 0 && !S.worker; }
   function nameOf(id){
     if (!id) return '';
@@ -318,6 +320,7 @@
 
   /* ---------- render ---------- */
   function renderShell(day){
+    if (ro() && S.view !== 'kidanje') S.view = 'kidanje';
     var cv = canView();
     if (!cv && S.staffLoaded && S.mode === 'db') {
       if (S.view === 'sesije') S.view = 'upis';
@@ -501,6 +504,7 @@
   /* ---------- navigation ---------- */
   function setView(v){
     S.view = (v === 'kidanje' || (v === 'sesije' && canView())) ? v : 'upis';
+    if (ro()) S.view = 'kidanje';
     render();
   }
   function viewFromHash(){
@@ -1550,7 +1554,8 @@
     var meW = S.worker ? STAFF.filter(function(p){ return p.ime === S.worker; })[0] : null;
     document.documentElement.classList.toggle('big', !!(meW && meW.krupno));
     var bar = $('staffBar');
-    var show = !ro() && STAFF.length > 0;
+    document.documentElement.classList.toggle('gost', ro());
+    var show = STAFF.length > 0;
     bar.hidden = !show;
     var logged = !!S.worker;
     bar.classList.toggle('need', show && !logged);
@@ -1571,18 +1576,18 @@
       if (canView() && !histUnsub) subHist();
       else if (!canView() && histUnsub) { try { histUnsub(); } catch(e){} histUnsub = null; HIST = []; }
     }
-    $('mjAdmin').hidden = !adm;
+    $('mjAdmin').hidden = !adm || ro();
     renderMjAdmin();
-    $('kdAdmin').hidden = !adm;
+    $('kdAdmin').hidden = !adm || ro();
     renderKdAdmin();
     renderHist();
     {
       setHTML($('staffList'), STAFF.length ? STAFF.map(function(p){
         var c = S.staffConfirm === p.id;
-        var own = p.uloga === 'vlasnik';
-        return '<li class="srow" data-id="' + esc(p.id) + '"><span class="sname">' + esc(p.ime) + '<small>' + (own ? 'vlasnik' : ['radnik'].concat(p.urednik ? ['mijenja i briše'] : [], p.pregled ? ['vidi događaje'] : []).join(' · ')) + '</small></span>' +
-          '<span class="sbtns">' + (own ? '' : '<button class="ghost" type="button" data-sact="pregled" aria-pressed="' + !!p.pregled + '">' + (p.pregled ? '✓ Vidi događaje i istoriju' : 'Vidi događaje i istoriju') + '</button>') +
-          (own ? '' : '<button class="ghost" type="button" data-sact="urednik" aria-pressed="' + !!p.urednik + '">' + (p.urednik ? '✓ Mijenja i briše' : 'Mijenja i briše') + '</button>') +
+        var own = p.uloga === 'vlasnik', gost = p.uloga === 'gost';
+        return '<li class="srow" data-id="' + esc(p.id) + '"><span class="sname">' + esc(p.ime) + '<small>' + (own ? 'vlasnik' : gost ? 'gost · samo pregled' : ['radnik'].concat(p.urednik ? ['mijenja i briše'] : [], p.pregled ? ['vidi događaje'] : []).join(' · ')) + '</small></span>' +
+          '<span class="sbtns">' + (own || gost ? '' : '<button class="ghost" type="button" data-sact="pregled" aria-pressed="' + !!p.pregled + '">' + (p.pregled ? '✓ Vidi događaje i istoriju' : 'Vidi događaje i istoriju') + '</button>') +
+          (own || gost ? '' : '<button class="ghost" type="button" data-sact="urednik" aria-pressed="' + !!p.urednik + '">' + (p.urednik ? '✓ Mijenja i briše' : 'Mijenja i briše') + '</button>') +
           '<button class="ghost" type="button" data-sact="big" aria-pressed="' + !!p.krupno + '">' + (p.krupno ? '✓ Krupna slova' : 'Krupna slova') + '</button>' +
           (own ? '' : '<button class="ghost danger' + (c ? ' confirm' : '') + '" type="button" data-sact="del">' + (c ? 'Potvrdi uklanjanje' : 'Ukloni') + '</button>') + '</span></li>';
       }).join('') : '<li class="note">Još nema radnika. Dodaj prvo ime ispod.</li>');
@@ -1613,12 +1618,12 @@
   });
   async function submitStaff(){
     if (!pruneAllowed()) { setStaffMsg('Radnike može dodavati samo vlasnik.', true); return; }
-    var ime = $('newStaff').value.trim(), pin = $('newStaffPin').value.trim();
+    var ime = $('newStaff').value.trim(), pin = $('newStaffPin').value.trim(), uloga = $('newStaffUloga').value;
     if (!ime) { setStaffMsg('Upiši ime radnika.', true); return; }
     if (!/^\d{4}$/.test(pin)) { setStaffMsg('Upiši PIN od 4 cifre za novog radnika.', true); $('newStaffPin').focus(); return; }
     if (STAFF.some(function(p){ return norm(p.ime) === norm(ime); })) { setStaffMsg('Taj radnik već postoji.', true); return; }
     var btn = $('staffAdd'); btn.disabled = true; setStaffMsg('Dodajem…');
-    try { await window.__noviRadnik(ime, pin); $('newStaff').value = ''; $('newStaffPin').value = ''; setStaffMsg(ime + ' je dodat(a). Ulazi sa PIN-om ' + pin + '.'); }
+    try { await window.__noviRadnik(ime, pin, uloga); $('newStaff').value = ''; $('newStaffPin').value = ''; $('newStaffUloga').value = 'radnik'; setStaffMsg(ime + (uloga === 'gost' ? ' je dodat(a) kao gost (samo pregled).' : ' je dodat(a).') + ' Ulazi sa PIN-om ' + pin + '.'); }
     catch(err){ setStaffMsg('Dodavanje nije uspjelo. Provjeri internet i pokušaj ponovo.', true); }
     finally { btn.disabled = false; }
   }

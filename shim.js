@@ -60,7 +60,7 @@
   var userApi = {
     me: function(){ return Promise.resolve({ id: me.uid, name: me.ime, isOwner: me.uloga === 'vlasnik', canEdit: true }); },
     id: function(){ return Promise.resolve(me.uid); },
-    can: function(){ return Promise.resolve(true); },
+    can: function(){ return Promise.resolve(me.uloga !== 'gost'); },
     isOwner: function(){ return me.uloga === 'vlasnik'; },
     canEdit: function(){ return true; },
     profiles: function(ids){
@@ -96,7 +96,7 @@
     try { localStorage.removeItem('pecenjara-radnik'); } catch(e){}
     auth.signOut().then(function(){ location.reload(); }, function(){ location.reload(); });
   };
-  window.__noviRadnik = function(ime, pin){
+  window.__noviRadnik = function(ime, pin, uloga){
     var sec = firebase.apps.filter(function(a){ return a.name === 'dodavanje'; })[0] || firebase.initializeApp(CFG, 'dodavanje');
     var sa = sec.auth();
     if (/[?&]emu=1/.test(location.search) && !sa.__emu) { sa.useEmulator('http://127.0.0.1:9099'); sa.__emu = true; }
@@ -106,7 +106,7 @@
       .then(function(cred){
         var uid = cred.user.uid;
         return sa.signOut().then(function(){
-          return fs.collection('osoblje').doc(uid).set({ ime: ime, email: email, uloga: 'radnik', kreirano: Date.now() });
+          return fs.collection('osoblje').doc(uid).set({ ime: ime, email: email, uloga: uloga === 'gost' ? 'gost' : 'radnik', kreirano: Date.now() });
         });
       });
   };
@@ -245,6 +245,7 @@
       if (!d.exists) { window.__odjava('Ovaj nalog više nema pristup. Javi se vlasniku.'); return; }
       var x = d.data();
       me = { uid: u.uid, ime: x.ime, uloga: x.uloga || 'radnik' };
+      window.__pecenjeGost = me.uloga === 'gost';
       start();
     }).catch(function(){
       $('lLoadMsg').textContent = 'Nema veze sa bazom. Provjeri internet pa osvježi stranicu.';
