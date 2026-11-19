@@ -272,32 +272,52 @@
   auth.onAuthStateChanged(onUser);
 
   /* ---------- rad bez interneta: čuva aplikaciju na telefonu ---------- */
-  /* Nova verzija: telefon provjerava pri svakom vraćanju u aplikaciju. Kad stigne,
-     aplikacija se sama osvježi čim se skloni sa ekrana, ili odmah na dugme „Osvježi“. */
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    var imaNovu = false;
-    function ponudiNovu(){
-      if (imaNovu) return; imaNovu = true;
-      var b = document.createElement('div');
-      b.className = 'novaverzija';
-      b.innerHTML = '<span>Stigla je nova verzija aplikacije.</span><button type="button">Osvježi</button>';
-      b.querySelector('button').addEventListener('click', function(){ location.reload(); });
-      document.body.appendChild(b);
-    }
-    window.addEventListener('load', function(){
-      var bioKontroler = !!navigator.serviceWorker.controller;
-      navigator.serviceWorker.addEventListener('controllerchange', function(){
-        if (!bioKontroler) { bioKontroler = true; return; }
-        if (document.visibilityState === 'hidden' || !started) location.reload(); else ponudiNovu();
-      });
-      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg){
-        function provjeri(){ try { reg.update(); } catch(e){} }
-        document.addEventListener('visibilitychange', function(){
-          if (document.visibilityState === 'visible') provjeri();
-          else if (imaNovu) location.reload();
-        });
-        setInterval(provjeri, 15 * 60 * 1000);
-      }).catch(function(){});
+  /* ---------- nova verzija ----------
+     Pri svakom otvaranju i vraćanju u aplikaciju pita server koja je verzija aktuelna
+     (mimo svih keševa). Ako je novija: osvježi se odmah kad se ništa ne kuca, inače
+     ponudi traku „Osvježi“ i osvježi se čim se aplikacija skloni sa ekrana. */
+  var MOJA = String(window.PECENJE_VERZIJA || ''), imaNovu = null;
+  function ponudiNovu(){
+    if (document.querySelector('.novaverzija')) return;
+    var b = document.createElement('div');
+    b.className = 'novaverzija';
+    b.innerHTML = '<span>Stigla je nova verzija aplikacije.</span><button type="button">Osvježi</button>';
+    b.querySelector('button').addEventListener('click', function(){ osvjezi(imaNovu); });
+    document.body.appendChild(b);
+  }
+  function osvjezi(v){
+    var kljuc = 'pecenje-osvjezeno-' + v;
+    try { if (sessionStorage.getItem(kljuc)) return; sessionStorage.setItem(kljuc, '1'); } catch(e){}
+    var cisti = window.caches ? caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }) : Promise.resolve();
+    var sw = navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.update().catch(function(){}); })); }) : Promise.resolve();
+    Promise.all([cisti.catch(function(){}), sw.catch(function(){})]).then(function(){
+      location.replace(location.pathname + '?v=' + encodeURIComponent(v) + location.hash);
     });
   }
+  function kuca(){
+    var a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+    return ['broj', 'ime', 'telefon', 'napomena', 'opis'].some(function(id){ var e = $(id); return e && e.value; });
+  }
+  function provjeriVerziju(){
+    if (!MOJA || location.protocol !== 'https:') return;
+    fetch('config.js?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
+      var m = /PECENJE_VERZIJA\s*=\s*"([^"]+)"/.exec(t);
+      if (!m || m[1] === MOJA) return;
+      imaNovu = m[1];
+      if (!started || !kuca()) osvjezi(imaNovu); else ponudiNovu();
+    }).catch(function(){});
+  }
+  window.__verzija = MOJA;
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function(){});
+    });
+  }
+  window.addEventListener('load', function(){ setTimeout(provjeriVerziju, 1500); });
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible') provjeriVerziju();
+    else if (imaNovu) osvjezi(imaNovu);
+  });
+  setInterval(provjeriVerziju, 10 * 60 * 1000);
 })();

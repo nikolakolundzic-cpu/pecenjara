@@ -49,8 +49,9 @@ i znakovima (najmanje 6). Na ekranu za prijavu se tada kod njegovog imena kuca �
 
 ## Nova verzija
 
-Posle izmjene koda povećati `PECENJE_VERZIJA` u `config.js` i `VERZIJA` u `sw.js`,
-da telefoni sigurno preuzmu novu verziju.
+Posle izmjene koda pokrenuti `./bump.sh` (povećava verziju u `config.js`, `sw.js` i `index.html`).
+Aplikacija pri svakom otvaranju i vraćanju na ekran pita server za verziju; kad je novija, sama se
+osvježi (ili pokaže traku „Osvježi“ ako se upravo nešto kuca). Trenutna verzija piše na dnu aplikacije.
 
 ## Testiranje na računaru
 

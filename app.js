@@ -369,6 +369,7 @@
     $('foot').textContent = S.mode === 'db'
       ? 'Upisi se čuvaju u bazi i vide ih svi prijavljeni radnici.'
       : (S.mode === 'local' ? 'Upisi se čuvaju samo u ovom pretraživaču na ovom uređaju.' : '');
+    if (window.__verzija) $('foot').textContent += ' Verzija ' + window.__verzija + '.';
   }
 
   function renderUpis(day){

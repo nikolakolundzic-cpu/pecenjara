@@ -1,5 +1,5 @@
 /* Čuva aplikaciju na telefonu da se otvori i bez interneta. Podatke čuva Firebase. */
-const VERZIJA = 'pecenje-v25';
+const VERZIJA = 'pecenje-v26';
 const OSNOVA = ['./', 'index.html', 'app.js', 'shim.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'vendor/jspdf.umd.min.js'];
 
@@ -21,7 +21,7 @@ self.addEventListener('fetch', e => {
   if (!svoje && !biblioteke && !fontovi) return;   // baza i prijava idu direktno na internet
   // prvo internet (da uvijek bude najnovija verzija), a bez interneta sačuvana kopija
   // svoje fajlove uvijek provjeri na serveru (ne iz keša pretraživača), da nova verzija stigne odmah
-  e.respondWith(fetch(req, svoje ? { cache: 'no-cache' } : undefined).then(res => {
+  e.respondWith(fetch(req, svoje ? { cache: req.mode === 'navigate' ? 'no-store' : 'no-cache' } : undefined).then(res => {
     if (res && (res.ok || res.type === 'opaque')) {
       const copy = res.clone();
       caches.open(VERZIJA).then(c => c.put(req, copy));
