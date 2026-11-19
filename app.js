@@ -157,7 +157,7 @@
   async function addUnique(o){
     // stari upisi (prije cedulja) i brza provjera
     var snap = await dbRef.where('sesija', '==', o.sesija).where('vrsta', '==', o.vrsta).where('broj', '==', o.broj).get();
-    var act = snap.docs.filter(function(d){ var x = d.data(); return x && !x.preuzeto; });
+    var act = snap.docs.filter(function(d){ var x = d.data(); return x && !x.preuzeto && !x.obrisano; });
     if (act.length) throw { code: 'dup_no', o: o, other: act[0].data() };
     var slotRef = DB.collection('brojevi').doc(String(o.sesija) + '_' + o.vrsta + '_' + o.broj);
     var orderRef = dbRef.doc();
@@ -168,7 +168,7 @@
         return t.get(dbRef.doc(sid));
       }).then(function(cur){
         var x = cur && cur.exists ? cur.data() : null;
-        if (x && !x.preuzeto && x.sesija === o.sesija && x.vrsta === o.vrsta && +x.broj === +o.broj) throw { code: 'dup_no', o: o, other: x };
+        if (x && !x.preuzeto && !x.obrisano && x.sesija === o.sesija && x.vrsta === o.vrsta && +x.broj === +o.broj) throw { code: 'dup_no', o: o, other: x };
         t.set(orderRef, o);
         t.set(slotRef, { order: orderRef.id, t: Date.now() });
       });
@@ -198,7 +198,15 @@
   async function removeOrder(id){
     if (needWorker()) throw { code: 'no_worker' };
     var o0 = orders.filter(function(x){ return x.id === id; })[0];
-    if (S.mode === 'db') { await dbRef.doc(id).delete(); }
+    if (S.mode === 'db') {
+      try { await dbRef.doc(id).delete(); }
+      catch(e){
+        /* Starija pravila baze dozvoljavaju brisanje samo vlasniku. Radnik sa dozvolom tada upis
+           označi kao obrisan: niko ga više ne vidi, a vlasnikova aplikacija ga zatim stvarno obriše. */
+        if (!(e && e.code === 'permission-denied' && canEditOrders())) throw e;
+        await dbRef.doc(id).update({ obrisano: true, obrisanoU: Date.now(), obrisaoIme: S.worker });
+      }
+    }
     else { orders = orders.filter(function(o){ return o.id !== id; }); saveLocal(); render(); }
     if (o0) logEvt('obrisano', o0);
   }
@@ -489,6 +497,17 @@
     $('opisWrap').hidden = !isD;
   }
 
+  /* vlasnikova aplikacija stvarno briše upise koje su radnici označili kao obrisane */
+  var cistim = false, SVE = [];
+  function pocistiObrisane(sve){
+    SVE = sve || SVE; sve = SVE;
+    if (cistim || !ME.isOwner || S.mode !== 'db') return;
+    var za = sve.filter(function(x){ return x.obrisano; });
+    if (!za.length) return;
+    cistim = true;
+    za.reduce(function(pr, x){ return pr.then(function(){ return dbRef.doc(x.id).delete().catch(function(){}); }); }, Promise.resolve())
+      .then(function(){ cistim = false; });
+  }
   var renderPending = false;
   function render(){
     if (renderPending) return;
@@ -1743,6 +1762,7 @@
   setInterval(function(){ if (S.loaded) render(); }, 60000);
   /* vlasniku: upozorenje ako na Firebaseu nisu objavljena najnovija pravila */
   setTimeout(function(){
+    pocistiObrisane();
     if (!window.__provjeriPravila || !ME.isOwner) return;
     window.__provjeriPravila().then(function(ok){
       if (ok !== false) return;
@@ -1798,7 +1818,9 @@
       }, function(){ S.sesLoaded = true; });
       var slow = setTimeout(function(){ if (!S.loaded) setMsg('Podaci se još ne učitavaju. Provjeri internet vezu.', true); }, 10000);
       dbRef.onSnapshot(function(snap){
-        orders = snap.docs.map(function(d){ var x = Object.assign({}, d.data()); x.id = d.id; return x; });
+        var sve = snap.docs.map(function(d){ var x = Object.assign({}, d.data()); x.id = d.id; return x; });
+        orders = sve.filter(function(x){ return !x.obrisano; });
+        pocistiObrisane(sve);
         dataVer++; S.loaded = true;
         if (!snap.metadata.fromCache) { clearTimeout(slow); if ($('msg').classList.contains('err') && /učitavaju/.test($('msg').textContent)) setMsg(''); }
         render(); resolveNames();
