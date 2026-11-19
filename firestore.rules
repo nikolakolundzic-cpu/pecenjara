@@ -49,7 +49,7 @@ service cloud.firestore {
       allow create: if jeRadnik();          // i gost može da upiše novo pečenje
       allow update: if jeVlasnik() || jeUrednik() || (jeAktivan() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
         ['vrsta', 'broj', 'ime', 'telefon', 'napomena', 'opis', 'sesija', 'kidanje', 'zaKidanje',
-         'dolazi', 'dolaziDatum', 'kreirano', 'upisao', 'upisaoIme', 'datum', 'grupa']));
+         'dolazi', 'dolaziDatum', 'kreirano', 'upisao', 'upisaoIme', 'datum', 'grupa', 'pola']));
       allow delete: if jeVlasnik() || jeUrednik();
     }
 

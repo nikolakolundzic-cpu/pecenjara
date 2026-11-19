@@ -31,7 +31,9 @@
   function norm(s){
     return String(s == null ? '' : s).toLowerCase().replace(/đ/g, 'dj').normalize('NFD').replace(/[̀-ͯ]/g, '');
   }
-  function lbl(o){ return o.vrsta === 'drugo' ? (o.opis || 'Drugo') : (TYPE[o.vrsta] || o.vrsta); }
+  var POLA = { jagnje: 'Pola jagnjeta', prase: 'Pola praseta' };
+  function lblV(v, pola, opis){ return v === 'drugo' ? (opis || 'Drugo') : (pola && POLA[v]) || TYPE[v] || v; }
+  function lbl(o){ return lblV(o.vrsta, o.pola, o.opis); }
 
   var S = {
     vrsta: 'jagnje', kid: 'odmah', filter: 'sve', editing: null, touched: false, confirmId: null,
@@ -330,7 +332,7 @@
     var note = '';
     if (o.vrsta === 'drugo' && o.opis) note = '<strong>' + esc(o.opis) + '</strong>' + (o.napomena ? ' · ' + esc(o.napomena) : '');
     else if (o.napomena) note = esc(o.napomena);
-    return '<div class="stub"><span class="stub-l">' + esc(TYPE[o.vrsta] || o.vrsta) + '</span><span class="stub-n">' + esc(o.broj) + '</span></div>' +
+    return '<div class="stub"><span class="stub-l">' + esc(TYPE[o.vrsta] || o.vrsta) + '</span><span class="stub-n">' + esc(o.broj) + '</span>' + (o.pola && o.vrsta !== 'drugo' ? '<span class="stub-pola">POLA</span>' : '') + '</div>' +
       '<div class="who"><div class="nm"><p class="name">' + (o.ime ? esc(o.ime) : 'Bez imena') + '</p>' + (tags || '') + '</div>' +
       (note ? '<p class="note">' + note + '</p>' : '') +
       (extra || '') + '</div>';
@@ -402,6 +404,7 @@
     var tel = String(o.telefon || '').replace(/\D/g, '');
     if (/^\d+$/.test(nq)) return String(o.broj).indexOf(nq) === 0 || norm(o.ime).indexOf(nq) !== -1 || (nq.length >= 3 && tel.indexOf(nq) !== -1);
     var m = mjFind(o.mjesto);
+    if (nq === 'pola' && o.pola) return true;
     return norm(o.ime).indexOf(nq) !== -1 || norm(o.opis).indexOf(nq) !== -1 || norm(o.napomena).indexOf(nq) !== -1 || (m && norm(m[1]).indexOf(nq) !== -1);
   }
 
@@ -498,7 +501,7 @@
   function rowHtml(o, red){
     var done = !!o.preuzeto, d = !!o.iskidano;
     var conf = S.confirmId === o.id;
-    var tags = (red ? '<span class="tag redbr' + (red === 1 ? ' prvi' : '') + '">' + (red === 1 ? 'Sljedeće · ' : '') + red + '. u redu</span>' : '') + kidTag(o) + dolTag(o) + (ro() ? preTag(o) + mjestoTag(o) : '');
+    var tags = (o.pola && o.vrsta !== 'drugo' ? '<span class="tag pola">' + esc(POLA[o.vrsta] || 'Pola') + '</span>' : '') + (red ? '<span class="tag redbr' + (red === 1 ? ' prvi' : '') + '">' + (red === 1 ? 'Sljedeće · ' : '') + red + '. u redu</span>' : '') + kidTag(o) + dolTag(o) + (ro() ? preTag(o) + mjestoTag(o) : '');
     var acts = '';
     if (!ro()) {
       acts = '<div class="acts">' +
@@ -515,6 +518,7 @@
   function syncOpis(){
     var isD = S.vrsta === 'drugo';
     $('opisWrap').hidden = !isD;
+    $('kolWrap').hidden = isD;
   }
 
   /* vlasnikova aplikacija stvarno briše upise koje su radnici označili kao obrisane */
@@ -546,6 +550,7 @@
     S.editing = null; S.touched = false;
     hideSugg(); $('broj').value = ''; $('ime').value = ''; $('napomena').value = ''; $('opis').value = '';
     $('telefon').value = ''; $('dolazi').value = ''; $('dolaziDan').value = '';
+    $('kol-cijelo').checked = true;
     $('submit').textContent = 'Dodaj'; $('cancel').hidden = true; $('extras').innerHTML = '';
     render();
   }
@@ -688,7 +693,8 @@
   }
   function readExtras(){
     return Array.prototype.map.call($('extras').querySelectorAll('.xrow'), function(row){
-      return { el: row, v: row.querySelector('.xv').value, b: parseInt(row.querySelector('.xb').value, 10), o: row.querySelector('.xo').value.trim() };
+      var v = row.querySelector('.xv').value;
+      return { el: row, v: v, b: parseInt(row.querySelector('.xb').value, 10), o: row.querySelector('.xo').value.trim(), p: v !== 'drugo' && row.querySelector('.xp').checked };
     });
   }
   $('addExtra').addEventListener('click', function(){
@@ -698,6 +704,7 @@
     row.innerHTML = '<select class="field xv" aria-label="Vrsta"><option value="jagnje">Jagnje</option><option value="prase">Prase</option><option value="drugo">Drugo</option></select>' +
       '<input class="field num xb" type="number" inputmode="numeric" min="1" step="1" placeholder="Broj" aria-label="Broj">' +
       '<input class="field xo" type="text" maxlength="40" placeholder="npr. but, plećka, ćurka" aria-label="Šta je došlo" hidden>' +
+      '<label class="xpl"><input type="checkbox" class="xp"> Pola</label>' +
       '<button class="ghost xdel" type="button" aria-label="Ukloni">✕</button>';
     row.querySelector('.xv').value = v;
     $('extras').appendChild(row);
@@ -710,6 +717,7 @@
     var s = e.target.closest('.xv'); if (!s) return;
     var row = s.closest('.xrow');
     row.querySelector('.xo').hidden = s.value !== 'drugo';
+    row.querySelector('.xpl').hidden = s.value === 'drugo';
   });
 
   /* ---------- events: Upis ---------- */
@@ -749,6 +757,7 @@
     var broj = parseInt($('broj').value, 10);
     var vrsta = S.vrsta;
     var opis = vrsta === 'drugo' ? $('opis').value.trim() : '';
+    var pola = vrsta !== 'drugo' && $('kol-pola').checked;
     var kid = S.kid;
 
     if (vrsta === 'drugo' && !opis) { setMsg('Napiši šta je donešeno (npr. ćurka).', true); $('opis').focus(); return; }
@@ -774,23 +783,23 @@
     var saved = [];
     try {
       if (S.editing) {
-        var patch = { vrsta: vrsta, broj: broj, ime: ime, napomena: napomena, opis: opis, kidanje: kid, zaKidanje: kid !== 'ne', telefon: telefon, dolazi: dolazi, dolaziDatum: dolaziDatum };
+        var patch = { pola: pola, vrsta: vrsta, broj: broj, ime: ime, napomena: napomena, opis: opis, kidanje: kid, zaKidanje: kid !== 'ne', telefon: telefon, dolazi: dolazi, dolaziDatum: dolaziDatum };
         if (kid === 'ne') { Object.assign(patch, kidPatch(false)); }
         await updateOrder(S.editing, patch);
         setMsg('Izmjena sačuvana.');
         showToast('✓ Izmjena sačuvana');
       } else {
         var grp = extras.length ? 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) : '';
-        var mk = function(v, b, op){
-          var r = { datum: todayStr(), sesija: curSession().id, vrsta: v, opis: v === 'drugo' ? op : '', broj: b, ime: ime, napomena: napomena, telefon: telefon, dolazi: dolazi, dolaziDatum: dolaziDatum, preuzeto: false,
+        var mk = function(v, b, op, pl){
+          var r = { datum: todayStr(), sesija: curSession().id, vrsta: v, pola: !!pl, opis: v === 'drugo' ? op : '', broj: b, ime: ime, napomena: napomena, telefon: telefon, dolazi: dolazi, dolaziDatum: dolaziDatum, preuzeto: false,
             kidanje: kid, zaKidanje: kid !== 'ne', iskidano: false, kreirano: Date.now(), upisao: ME.id || '', upisaoIme: S.worker };
           if (grp) r.grupa = grp;
           return r;
         };
-        var added = [{ v: vrsta, b: broj, o: opis }].concat(extras);
-        for (var xi = 0; xi < added.length; xi++) { await addOrder(mk(added[xi].v, added[xi].b, added[xi].o)); saved.push(added[xi]); }
-        setMsg(added.map(function(x){ return (x.v === 'drugo' ? x.o : TYPE[x.v]) + ' ' + x.b; }).join(', ') + ' dodato' + (ime ? ' za ' + ime : '') + (kid === 'odmah' ? ' (za kidanje).' : '.'));
-        showToast('✓ Upisano: ' + added.map(function(x){ return (x.v === 'drugo' ? x.o : TYPE[x.v]) + ' ' + x.b; }).join(', ') + (ime ? ' · ' + ime : ''));
+        var added = [{ v: vrsta, b: broj, o: opis, p: pola }].concat(extras);
+        for (var xi = 0; xi < added.length; xi++) { await addOrder(mk(added[xi].v, added[xi].b, added[xi].o, added[xi].p)); saved.push(added[xi]); }
+        setMsg(added.map(function(x){ return lblV(x.v, x.p, x.o) + ' ' + x.b; }).join(', ') + ' dodato' + (ime ? ' za ' + ime : '') + (kid === 'odmah' ? ' (za kidanje).' : '.'));
+        showToast('✓ Upisano: ' + added.map(function(x){ return lblV(x.v, x.p, x.o) + ' ' + x.b; }).join(', ') + (ime ? ' · ' + ime : ''));
       }
       resetForm();
       btn.textContent = '✓ Upisano';
@@ -798,7 +807,7 @@
       $('broj').focus();
     } catch(err){
       writeFailed(err);
-      if (saved.length) setMsg('Upisano: ' + saved.map(function(x){ return (x.v === 'drugo' ? x.o : TYPE[x.v]) + ' ' + x.b; }).join(', ') + '. ' + failText(err), true);
+      if (saved.length) setMsg('Upisano: ' + saved.map(function(x){ return lblV(x.v, x.p, x.o) + ' ' + x.b; }).join(', ') + '. ' + failText(err), true);
       if (err && err.code === 'dup_no' && !saved.length) { S.touched = false; render(); }
     } finally {
       btn.disabled = false;
@@ -823,6 +832,7 @@
       S.editing = id; S.vrsta = o.vrsta; S.kid = kidMode(o); S.touched = true;
       document.getElementById('vr-' + o.vrsta).checked = true;
       document.getElementById('kid-' + S.kid).checked = true;
+      document.getElementById(o.pola ? 'kol-pola' : 'kol-cijelo').checked = true;
       $('opis').value = o.opis || '';
       syncOpis();
       $('broj').value = o.broj; $('ime').value = o.ime || ''; $('napomena').value = o.napomena || '';
@@ -1036,7 +1046,7 @@
     day.forEach(function(o){
       if (o.vrsta !== last) { last = o.vrsta; body += '<tr class="g"><td colspan="7">' + esc(o.vrsta === 'jagnje' ? 'Jagnjad' : o.vrsta === 'prase' ? 'Prasad' : 'Drugo') + '</td></tr>'; }
       var nap = o.napomena || '';
-      body += '<tr><td class="n">' + esc(o.broj) + (o.vrsta === 'drugo' && o.opis ? '<br><small style="font-weight:normal;font-size:9pt">' + esc(o.opis) + '</small>' : '') + '</td><td>' + esc(o.ime || '') + '</td><td>' + esc(o.telefon || '') + '</td><td>' + esc(hasArr(o) ? arrText(o) : '') + '</td>' +
+      body += '<tr><td class="n">' + esc(o.broj) + (o.vrsta === 'drugo' && o.opis ? '<br><small style="font-weight:normal;font-size:9pt">' + esc(o.opis) + '</small>' : (o.pola ? '<br><small style="font-size:9pt">POLA</small>' : '')) + '</td><td>' + esc(o.ime || '') + '</td><td>' + esc(o.telefon || '') + '</td><td>' + esc(hasArr(o) ? arrText(o) : '') + '</td>' +
         '<td>' + (kidMode(o) === 'ne' ? 'bez' : (o.iskidano ? '✓' : '<span class="bx"></span>')) + '</td><td>' + esc(nap) + '</td>' +
         '<td>' + (o.preuzeto ? '✓' : '<span class="bx"></span>') + '</td></tr>';
     });
@@ -1104,7 +1114,7 @@
       }
       var o = r.o, pad = 10, lh = 28, fn = '23px ' + F;
       var cells = [
-        { t: String(o.broj), font: 'bold 30px ' + F, sub: o.vrsta === 'drugo' ? (o.opis || '') : '' },
+        { t: String(o.broj), font: 'bold 30px ' + F, sub: o.vrsta === 'drugo' ? (o.opis || '') : (o.pola ? 'POLA' : '') },
         { t: o.ime || '' }, { t: o.telefon || '' }, { t: hasArr(o) ? arrText(o) : '' },
         { k: kidMode(o) === 'ne' ? 'bez' : (o.iskidano ? 'da' : 'ne') }, { t: o.napomena || '' }, { p: !!o.preuzeto }
       ];
@@ -1481,9 +1491,10 @@
     var drugo = {};
     day.forEach(function(o){ if (o.vrsta === 'drugo') { var k = (o.opis || 'drugo').trim(); drugo[k] = (drugo[k] || 0) + 1; } });
     var dTxt = Object.keys(drugo).map(function(k){ return k + ' ' + drugo[k]; }).join(', ');
+    var polaTxt = function(v){ var k = day.filter(function(o){ return o.vrsta === v && o.pola; }).length; return k ? ' (od toga pola: ' + k + ')' : ''; };
     var rows = [
-      ['Jagnjad', n(function(o){ return o.vrsta === 'jagnje'; })],
-      ['Prasad', n(function(o){ return o.vrsta === 'prase'; })],
+      ['Jagnjad' + polaTxt('jagnje'), n(function(o){ return o.vrsta === 'jagnje'; })],
+      ['Prasad' + polaTxt('prase'), n(function(o){ return o.vrsta === 'prase'; })],
       ['Drugo' + (dTxt ? ' (' + dTxt + ')' : ''), n(function(o){ return o.vrsta === 'drugo'; })],
       ['Ukupno', day.length], null,
       ['Preuzeto', n(function(o){ return !!o.preuzeto; })],
@@ -1533,7 +1544,7 @@
       var m = mjFind(o.mjesto);
       var dol = (o.dolaziDatum ? o.dolaziDatum + ' ' : '') + (o.dolazi || '');
       lines.push([
-        o.vrsta === 'drugo' ? (o.opis || 'Drugo') : (TYPE[o.vrsta] || o.vrsta), o.broj, o.ime || '', o.telefon || '', o.napomena || '',
+        lbl(o), o.broj, o.ime || '', o.telefon || '', o.napomena || '',
         kidMode(o) === 'ne' ? 'Bez kidanja' : 'Za kidanje', kidMode(o) === 'ne' ? '' : (o.iskidano ? 'Da' : 'Ne'),
         o.iskidano ? fmtFull(o.iskidanoU) : '', o.iskidano ? (o.iskidaoIme || nameOf(o.iskidao) || '') : '',
         dol.trim(), m ? m[1] : '', o.preuzeto ? 'Da' : 'Ne', fmtFull(o.preuzetoU), o.preuzeoIme || nameOf(o.preuzeo) || '',

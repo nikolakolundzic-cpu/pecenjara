@@ -677,6 +677,15 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
 .tag.redbr{color:var(--ink); background:color-mix(in srgb, var(--ink) 8%, transparent)}
 .tag.redbr.prvi{color:#fff; background:linear-gradient(180deg, var(--zar), var(--zar2))}
 .hsum.redkid{font-size:14px; line-height:1.4}
+
+/* pola pečenja */
+.seg input:checked + label.kc, .seg input:checked + label.kp{border-color:var(--ink); color:var(--ink); background:color-mix(in srgb, var(--ink) 8%, var(--field)); border-width:2px}
+.tag.pola{color:#fff; background:var(--prase); background:linear-gradient(180deg, var(--zar), var(--zar2))}
+.stub-pola{font-family:var(--f-display); font-weight:800; font-size:13px; letter-spacing:.06em; color:var(--zar); margin-top:2px}
+.xrow .xv{flex:1 1 90px; min-width:0}
+.xrow .xb{flex:1 1 64px; min-width:0}
+.xrow .xpl{display:inline-flex; align-items:center; gap:6px; height:48px; padding:0 10px; border:1px solid var(--line); border-radius:var(--r-s); background:var(--field); font-weight:700; flex:0 0 auto}
+.xrow .xpl input{width:20px; height:20px; accent-color:var(--zar)}
 </style>
 
 </head>
@@ -781,6 +790,15 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
         <label class="l" for="opis">Šta je donešeno</label>
         <input class="field" id="opis" type="text" placeholder="npr. but, plećka, ćurka" maxlength="40" enterkeyhint="next">
       </div>
+      <fieldset class="full" id="kolWrap">
+        <legend>Količina</legend>
+        <div class="seg sm">
+          <input type="radio" name="kolicina" id="kol-cijelo" value="cijelo" checked>
+          <label class="kc" for="kol-cijelo">Cijelo</label>
+          <input type="radio" name="kolicina" id="kol-pola" value="pola">
+          <label class="kp" for="kol-pola">Pola</label>
+        </div>
+      </fieldset>
       <fieldset class="full">
         <legend>Kidanje</legend>
         <div class="seg sm">
@@ -1031,7 +1049,7 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="config.js?v=27"></script>
-<script src="shim.js?v=27"></script>
+<script src="config.js?v=28"></script>
+<script src="shim.js?v=28"></script>
 </body>
 </html>
