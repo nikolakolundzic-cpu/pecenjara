@@ -48,7 +48,6 @@
   var LSSES = 'pecenjara-sesija', LSSL = 'pecenjara-sesije-v1';
   var LSW = 'pecenjara-radnik', LSS = 'pecenjara-osoblje-v1';
   var dbRef = null, DB = null, histUnsub = null;
-  var HOLDER = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   var HIST = [], histRef = null, LSH = 'pecenjara-istorija-v1';
   function loadHistLocal(){ try { return JSON.parse(localStorage.getItem(LSH) || '[]'); } catch(e){ return []; } }
   function saveHistLocal(){ try { localStorage.setItem(LSH, JSON.stringify(HIST.slice(-3000))); } catch(e){} }
@@ -132,6 +131,7 @@
     if (code === 'dup_no') t = lbl(e.o) + ' broj ' + e.o.broj + ' je trenutno kod kupca' + (e.other && e.other.ime ? ' ' + e.other.ime : '') +
       ' koji ga još nije preuzeo. Broj se može dati ponovo tek kad prethodni kupac preuzme pečenje.';
     else if (code === 'busy_no') t = 'Neko drugi upravo upisuje. Pokušaj ponovo za par sekundi.';
+    else if (code === 'permission-denied') t = 'Baza je odbila upis: nemaš dozvolu za ovo. Javi se vlasniku.';
     else if (code === 'no_session') t = 'Prvo napravi događaj (traka „Događaj“ iznad).';
     else if (code === 'no_worker') t = 'Prvo izaberi ko radi (iznad forme).';
     else if (code === 'quota_exceeded') t ='Baza je puna. Obriši stare upise pa pokušaj ponovo.';
@@ -151,20 +151,28 @@
   function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
   /* Dva telefona ne smiju upisati isti broj: kratko zaključamo vrstu u događaju,
      provjerimo bazu (ne samo ovaj telefon) pa tek onda upišemo. */
+  /* Dva telefona ne smiju dati isti broj. Za svaki broj postoji „cedulja“ u bazi koja pokazuje
+     na pečenje koje ga trenutno drži; upis i cedulja se pišu zajedno, u jednoj transakciji.
+     Ne zavisi od sata u telefonima. */
   async function addUnique(o){
-    var slot = DB.collection('brojevi').doc(String(o.sesija) + '_' + o.vrsta);
-    var got = false;
-    for (var i = 0; i < 6 && !got; i++) {
-      var r = await slot.acquire({ holder: HOLDER, ttlMs: 3000 });
-      if (r && r.acquired) { got = true; break; }
-      var until = r && r.expiresAt ? Date.parse(r.expiresAt) - Date.now() : 800;
-      await wait(Math.min(Math.max(until + 150, 300), 3200));
-    }
-    if (!got) throw { code: 'busy_no' };
+    // stari upisi (prije cedulja) i brza provjera
     var snap = await dbRef.where('sesija', '==', o.sesija).where('vrsta', '==', o.vrsta).where('broj', '==', o.broj).get();
     var act = snap.docs.filter(function(d){ var x = d.data(); return x && !x.preuzeto; });
     if (act.length) throw { code: 'dup_no', o: o, other: act[0].data() };
-    await dbRef.add(o);
+    var slotRef = DB.collection('brojevi').doc(String(o.sesija) + '_' + o.vrsta + '_' + o.broj);
+    var orderRef = dbRef.doc();
+    await DB.runTransaction(function(t){
+      return t.get(slotRef).then(function(slot){
+        var sid = slot.exists && slot.data() ? slot.data().order : null;
+        if (!sid) return null;
+        return t.get(dbRef.doc(sid));
+      }).then(function(cur){
+        var x = cur && cur.exists ? cur.data() : null;
+        if (x && !x.preuzeto && x.sesija === o.sesija && x.vrsta === o.vrsta && +x.broj === +o.broj) throw { code: 'dup_no', o: o, other: x };
+        t.set(orderRef, o);
+        t.set(slotRef, { order: orderRef.id, t: Date.now() });
+      });
+    });
   }
   /* Broj je zauzet samo dok pečenje nije preuzeto. Kad kupac preuzme i vrati broj, isti broj se daje sljedećem. */
   function activeHolder(v, b, ses, exceptId){
@@ -812,7 +820,9 @@
     if (!a || !/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
     var t = e.target;
     if (!t || !t.closest) return;
-    if (t.closest('input, textarea, select, label, #sugg, #qx, #qkb')) return;
+    /* dugmad i linkovi rade svoje; tastatura se spušta samo na dodir praznog dijela,
+       inače se na iPhoneu ekran pomjeri ispod prsta i dugme (npr. Dodaj) ne primi dodir */
+    if (t.closest('input, textarea, select, label, button, a, summary, [role="button"], #sugg')) return;
     try { a.blur(); } catch(x){}
   }, true);
   $('qx').addEventListener('click', function(){

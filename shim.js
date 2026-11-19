@@ -53,7 +53,8 @@
   }
   var dbApi = {
     collection: function(p){ return wrapCol(fs.collection(p)); },
-    doc: function(p){ return wrapDoc(fs.doc(p)); }
+    doc: function(p){ return wrapDoc(fs.doc(p)); },
+    runTransaction: function(fn){ return fs.runTransaction(fn); }
   };
 
   var me = null, NAMES = {};
