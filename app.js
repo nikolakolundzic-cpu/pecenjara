@@ -412,17 +412,20 @@
     $('kW').textContent = pend; $('kD').textContent = done; $('kT').textContent = bez;
     $('kfCeka').textContent = pend; $('kfIsk').textContent = done; $('kfBez').textContent = bez;
     $('fSat').textContent = day.filter(function(o){ return !o.preuzeto && hasArr(o); }).length;
+    $('fZad').textContent = Math.min(day.length, 20);
 
     var q = S.q.trim();
     var nq = norm(q);
     var bySat = S.filter === 'sati' && !q;
-    var redKid = S.kfilter === 'ceka' && !q && !bySat;
+    var zadnje = S.filter === 'zadnje' && !q;
+    var redKid = S.kfilter === 'ceka' && !q && !bySat && !zadnje;
     Array.prototype.forEach.call($('kfilters').querySelectorAll('.chip'), function(b){
       b.setAttribute('aria-pressed', String(!q && b.getAttribute('data-kf') === S.kfilter));
     });
 
     var rows = day.filter(function(o){
       if (q) return matchQ(o, nq);
+      if (zadnje) return true;
       if (S.filter === 'jagnje' || S.filter === 'prase' || S.filter === 'drugo') { if (o.vrsta !== S.filter) return false; }
       else if (S.filter === 'ceka') { if (o.preuzeto) return false; }
       else if (S.filter === 'preuzeto') { if (!o.preuzeto) return false; }
@@ -437,6 +440,7 @@
         if (ea !== eb) return ea - eb;
         if (!!a.preuzeto !== !!b.preuzeto) return a.preuzeto ? 1 : -1;
       }
+      if (zadnje) return (b.kreirano || 0) - (a.kreirano || 0) || sortRows(b, a);
       if (redKid) {
         var ra = kidRok(a), rb = kidRok(b);
         if (ra !== rb) return ra - rb;
@@ -475,6 +479,10 @@
         }
         html += rowHtml(o);
       });
+    } else if (zadnje) {
+      var zr = rows.slice(0, 20);
+      html = '<li class="hsum"><b>Zadnje upisano.</b> ' + (rows.length > zr.length ? 'Posljednjih ' + zr.length + ' upisa' : 'Svi upisi') + ', najnovije prvo.</li>' +
+        zr.map(function(o){ return rowHtml(o); }).join('');
     } else if (redKid) {
       html = '<li class="hsum redkid"><b>Red za kidanje.</b> Prvo ono što je najranije potrebno: po vremenu dolaska kupca, a gdje vrijeme nije upisano, po redu upisa.</li>' +
         rows.map(function(o, i){ return rowHtml(o, i + 1); }).join('');
@@ -725,7 +733,7 @@
     var b = e.target.closest('.chip'); if (!b) return;
     var f = b.getAttribute('data-f');
     S.filter = (f === S.filter && f !== 'sve') ? 'sve' : f;
-    if (f === 'sve') S.kfilter = 'sve';
+    if (f === 'sve' || f === 'zadnje') S.kfilter = 'sve';
     if (S.q) { S.q = ''; $('q').value = ''; }
     render();
   });
@@ -868,6 +876,7 @@
     var b = e.target.closest('.chip'); if (!b) return;
     var kf = b.getAttribute('data-kf');
     S.kfilter = (kf === S.kfilter) ? 'sve' : kf;
+    if (S.filter === 'zadnje') S.filter = 'sve';
     if (S.q) { S.q = ''; $('q').value = ''; }
     render();
   });
