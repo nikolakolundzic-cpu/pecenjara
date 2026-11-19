@@ -669,6 +669,8 @@ html.big .when{font-size:14px}
 
 /* gost: upisuje pečenja i gleda listu, bez zbirova i brojeva */
 html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost .hsum{display:none !important}
+
+.notice.warn{border:1px solid var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--surface)); color:var(--ink); font-weight:600; border-radius:var(--r)}
 </style>
 
 </head>
@@ -719,6 +721,7 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
     </div>
     <p class="me" id="meBar" hidden></p>
     <p class="notice" id="notice" hidden></p>
+    <p class="notice warn" id="rulesWarn" role="alert" hidden></p>
     <div class="hdrrow">
     <div class="staff" id="staffBar" hidden>
       <div class="cur" id="staffCur" hidden>

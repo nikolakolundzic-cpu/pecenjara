@@ -1,4 +1,5 @@
 rules_version = '2';
+// Verzija pravila: v7 (aplikacija provjerava da li su objavljena najnovija pravila)
 service cloud.firestore {
   match /databases/{database}/documents {
     function prijavljen() { return request.auth != null; }
@@ -21,6 +22,11 @@ service cloud.firestore {
     // Radnik kome je vlasnik u Osoblju dozvolio da mijenja i briše upise.
     function jeUrednik() {
       return jeAktivan() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('urednik', false) == true;
+    }
+
+    // Oznaka verzije: aplikacija čita pravila/v7; ako ne smije, objavljena su starija pravila.
+    match /pravila/{v} {
+      allow get: if v == 'v7';
     }
 
     // Prvo pokretanje: prvi prijavljeni postavlja sebe za vlasnika, kasnije se ne može promijeniti.

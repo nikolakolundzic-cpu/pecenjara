@@ -118,6 +118,13 @@
       throw (e && /wrong-password|invalid-credential|invalid-login/.test(e.code || '')) ? { code: 'pogresan' } : e;
     }).then(function(){ return u.updatePassword(pwd(novi)); });
   };
+  /* Da li su na Firebaseu objavljena najnovija pravila (iz firestore.rules)? true / false / null (ne zna se) */
+  var PRAVILA = 'v7';
+  window.__provjeriPravila = function(){
+    return fs.collection('pravila').doc(PRAVILA).get({ source: 'server' }).then(function(){ return true; }, function(e){
+      return e && e.code === 'permission-denied' ? false : null;
+    });
+  };
   var KOLEKCIJE = ['porudzbine', 'sesije', 'istorija', 'podesavanja'];
   window.__izvoz = function(){
     var out = { verzija: 1, napravljeno: new Date().toISOString() };

@@ -131,7 +131,7 @@
     if (code === 'dup_no') t = lbl(e.o) + ' broj ' + e.o.broj + ' je trenutno kod kupca' + (e.other && e.other.ime ? ' ' + e.other.ime : '') +
       ' koji ga još nije preuzeo. Broj se može dati ponovo tek kad prethodni kupac preuzme pečenje.';
     else if (code === 'busy_no') t = 'Neko drugi upravo upisuje. Pokušaj ponovo za par sekundi.';
-    else if (code === 'permission-denied') t = 'Baza je odbila upis: nemaš dozvolu za ovo. Javi se vlasniku.';
+    else if (code === 'permission-denied') t = 'Baza je odbila ovu radnju. Ako bi trebalo da imaš dozvolu, javi se vlasniku: vjerovatno treba objaviti nova pravila baze.';
     else if (code === 'no_session') t = 'Prvo napravi događaj (traka „Događaj“ iznad).';
     else if (code === 'no_worker') t = 'Prvo izaberi ko radi (iznad forme).';
     else if (code === 'quota_exceeded') t ='Baza je puna. Obriši stare upise pa pokušaj ponovo.';
@@ -1741,6 +1741,16 @@
   paintTheme();
 
   setInterval(function(){ if (S.loaded) render(); }, 60000);
+  /* vlasniku: upozorenje ako na Firebaseu nisu objavljena najnovija pravila */
+  setTimeout(function(){
+    if (!window.__provjeriPravila || !ME.isOwner) return;
+    window.__provjeriPravila().then(function(ok){
+      if (ok !== false) return;
+      var n = $('rulesWarn');
+      n.textContent = 'Pravila baze na Firebaseu nisu najnovija, pa neke dozvole (npr. brisanje za radnike) ne rade. Objavi novi firestore.rules: Firebase → Firestore Database → Rules → Publish.';
+      n.hidden = false;
+    });
+  }, 4000);
 
   /* ---------- start ---------- */
   S.view = viewFromHash();
