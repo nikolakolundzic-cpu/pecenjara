@@ -296,11 +296,7 @@
     if (ro()) return '';
     var t = (o.telefon || '').trim(); if (!t) return '';
     var num = t.replace(/[^\d+]/g, '');
-    var what = o.vrsta === 'jagnje' ? 'jagnje' : (o.vrsta === 'prase' ? 'prase' : 'pečenje' + (o.opis ? ' (' + o.opis + ')' : ''));
-    var sms = 'Poštovani, Vaše ' + what + ' broj ' + o.broj + ' je spremno za preuzimanje.';
-    var smsSep = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) ? '&' : '?';
-    return '<div class="copy">' + (num ? '<button class="cpb" type="button" data-call="' + esc(num) + '" data-tel="' + esc(t) + '" data-who="' + esc(o.ime || '') + '" aria-label="Pozovi ' + esc(t) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5l2.6.4 1.3 3.7-1.9 1.4a12 12 0 0 0 6.4 6.4l1.4-1.9 3.7 1.3.4 2.6c-.2 1.3-1.3 2.3-2.7 2.2C9.6 19.1 4.9 14.4 4.4 6.2c-.1-1.4.9-2.5 2.2-2.7z" fill="currentColor"/></svg>' + esc(t) + '</button>' : '<span class="cpb">' + esc(t) + '</span>') +
-      (o.preuzeto || !num ? '' : '<a class="cpb" href="sms:' + esc(num) + smsSep + 'body=' + esc(encodeURIComponent(sms)) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Pošalji SMS</a>') + '</div>';
+    return '<div class="copy">' + (num ? '<button class="cpb" type="button" data-call="' + esc(num) + '" data-tel="' + esc(t) + '" data-who="' + esc(o.ime || '') + '" aria-label="Pozovi ' + esc(t) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5l2.6.4 1.3 3.7-1.9 1.4a12 12 0 0 0 6.4 6.4l1.4-1.9 3.7 1.3.4 2.6c-.2 1.3-1.3 2.3-2.7 2.2C9.6 19.1 4.9 14.4 4.4 6.2c-.1-1.4.9-2.5 2.2-2.7z" fill="currentColor"/></svg>' + esc(t) + '</button>' : '<span class="cpb">' + esc(t) + '</span>') + '</div>';
   }
   /* gost: samo pregled (bez upisa, zbirova, istorije i podešavanja) */
   function ro(){ return ME.canWrite === false || window.__pecenjeGost === true; }
