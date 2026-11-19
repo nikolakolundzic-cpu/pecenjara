@@ -671,6 +671,12 @@ html.big .when{font-size:14px}
 html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost .hsum{display:none !important}
 
 .notice.warn{border:1px solid var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--surface)); color:var(--ink); font-weight:600; border-radius:var(--r)}
+
+/* red za kidanje */
+.kidlink{cursor:pointer}
+.tag.redbr{color:var(--ink); background:color-mix(in srgb, var(--ink) 8%, transparent)}
+.tag.redbr.prvi{color:#fff; background:linear-gradient(180deg, var(--zar), var(--zar2))}
+.hsum.redkid{font-size:14px; line-height:1.4}
 </style>
 
 </head>
@@ -823,7 +829,7 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
   <!-- ===== Stranica: Kidanje ===== -->
   <section class="view" id="viewKidanje" hidden>
     <dl class="tally" aria-label="Zbir kidanja za ovaj događaj">
-      <div class="c-w"><dt>Čeka kidanje</dt><dd id="kW">0</dd></div>
+      <div class="c-w kidlink" role="button" tabindex="0" title="Prikaži red za kidanje"><dt>Čeka kidanje ›</dt><dd id="kW">0</dd></div>
       <div class="c-ok"><dt>Iskidano</dt><dd id="kD">0</dd></div>
       <div class="c-r"><dt>Bez kidanja</dt><dd id="kT">0</dd></div>
     </dl>
@@ -845,7 +851,7 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
     </div>
 
     <div class="filters" id="kfilters" role="group" aria-label="Filter kidanja">
-      <button class="chip" type="button" data-kf="ceka" aria-pressed="false">Čeka kidanje <b id="kfCeka">0</b></button>
+      <button class="chip" type="button" data-kf="ceka" aria-pressed="false">Red za kidanje <b id="kfCeka">0</b></button>
       <button class="chip" type="button" data-kf="iskidano" aria-pressed="false">Iskidano <b id="kfIsk">0</b></button>
       <button class="chip" type="button" data-kf="bez" aria-pressed="false">Bez kidanja <b id="kfBez">0</b></button>
     </div>

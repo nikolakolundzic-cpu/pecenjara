@@ -416,6 +416,7 @@
     var q = S.q.trim();
     var nq = norm(q);
     var bySat = S.filter === 'sati' && !q;
+    var redKid = S.kfilter === 'ceka' && !q && !bySat;
     Array.prototype.forEach.call($('kfilters').querySelectorAll('.chip'), function(b){
       b.setAttribute('aria-pressed', String(!q && b.getAttribute('data-kf') === S.kfilter));
     });
@@ -435,6 +436,11 @@
         var ea = String(a.broj) === nq ? 0 : 1, eb = String(b.broj) === nq ? 0 : 1;
         if (ea !== eb) return ea - eb;
         if (!!a.preuzeto !== !!b.preuzeto) return a.preuzeto ? 1 : -1;
+      }
+      if (redKid) {
+        var ra = kidRok(a), rb = kidRok(b);
+        if (ra !== rb) return ra - rb;
+        return (a.kreirano || 0) - (b.kreirano || 0) || sortRows(a, b);
       }
       if ((S.filter === 'ceka' || S.filter === 'sati') && !q) {
         var ta = arrKey(a), tb = arrKey(b);
@@ -469,16 +475,21 @@
         }
         html += rowHtml(o);
       });
+    } else if (redKid) {
+      html = '<li class="hsum redkid"><b>Red za kidanje.</b> Prvo ono što je najranije potrebno: po vremenu dolaska kupca, a gdje vrijeme nije upisano, po redu upisa.</li>' +
+        rows.map(function(o, i){ return rowHtml(o, i + 1); }).join('');
     } else {
-      html = rows.map(rowHtml).join('');
+      html = rows.map(function(o){ return rowHtml(o); }).join('');
     }
     setHTML($('list2'), html);
   }
 
-  function rowHtml(o){
+  /* kad je pečenje potrebno: najavljeni dolazak, a bez njega trenutak upisa */
+  function kidRok(o){ return hasArr(o) ? arrTime(o) : (o.kreirano || 0); }
+  function rowHtml(o, red){
     var done = !!o.preuzeto, d = !!o.iskidano;
     var conf = S.confirmId === o.id;
-    var tags = kidTag(o) + dolTag(o) + (ro() ? preTag(o) + mjestoTag(o) : '');
+    var tags = (red ? '<span class="tag redbr' + (red === 1 ? ' prvi' : '') + '">' + (red === 1 ? 'Sljedeće · ' : '') + red + '. u redu</span>' : '') + kidTag(o) + dolTag(o) + (ro() ? preTag(o) + mjestoTag(o) : '');
     var acts = '';
     if (!ro()) {
       acts = '<div class="acts">' +
@@ -848,6 +859,10 @@
     $('q').value = ''; S.q = ''; setMsg2('');
     renderKidanje(dayOrders());
     try { $('q').focus(); } catch(e){}
+  });
+  $('kW').parentNode.addEventListener('click', function(){
+    S.kfilter = 'ceka'; S.filter = 'sve'; if (S.q) { S.q = ''; $('q').value = ''; } render();
+    try { $('list2').scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch(e){}
   });
   $('kfilters').addEventListener('click', function(e){
     var b = e.target.closest('.chip'); if (!b) return;
