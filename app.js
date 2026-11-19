@@ -734,7 +734,7 @@
     var b = e.target.closest('.chip'); if (!b) return;
     var f = b.getAttribute('data-f');
     S.filter = (f === S.filter && f !== 'sve') ? 'sve' : f;
-    if (f === 'sve' || f === 'zadnje') S.kfilter = 'sve';
+    S.kfilter = 'sve';   /* uvijek samo jedan filter, da se ne preklapaju */
     if (S.q) { S.q = ''; $('q').value = ''; }
     render();
   });
@@ -877,7 +877,7 @@
     var b = e.target.closest('.chip'); if (!b) return;
     var kf = b.getAttribute('data-kf');
     S.kfilter = (kf === S.kfilter) ? 'sve' : kf;
-    if (S.filter === 'zadnje') S.filter = 'sve';
+    S.filter = 'sve';    /* uvijek samo jedan filter, da se ne preklapaju */
     if (S.q) { S.q = ''; $('q').value = ''; }
     render();
   });
