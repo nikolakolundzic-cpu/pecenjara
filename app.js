@@ -481,7 +481,7 @@
       });
     } else if (zadnje) {
       var zr = rows.slice(0, 20);
-      html = '<li class="hsum"><b>Zadnje upisano.</b> ' + (rows.length > zr.length ? 'Posljednjih ' + zr.length + ' upisa' : 'Svi upisi') + ', najnovije prvo.</li>' +
+      html = '<li class="hsum"><b>Zadnje primljeno.</b> ' + (rows.length > zr.length ? 'Posljednjih ' + zr.length + ' primljenih pečenja' : 'Sva primljena pečenja') + ', po vremenu prijema, najnovije prvo. Izmjene ne mijenjaju redoslijed.</li>' +
         zr.map(function(o){ return rowHtml(o); }).join('');
     } else if (redKid) {
       html = '<li class="hsum redkid"><b>Red za kidanje.</b> Prvo ono što je najranije potrebno: po vremenu dolaska kupca, a gdje vrijeme nije upisano, po redu upisa.</li>' +
