@@ -488,9 +488,30 @@
       html = '<li class="hsum redkid"><b>Red za kidanje.</b> Prvo ono što je najranije potrebno: po vremenu dolaska kupca, a gdje vrijeme nije upisano, po redu upisa.</li>' +
         rows.map(function(o, i){ return rowHtml(o, i + 1); }).join('');
     } else {
-      html = rows.map(function(o){ return rowHtml(o); }).join('');
+      html = grupisi(rows).map(grupaHtml).join('');
     }
     setHTML($('list2'), html);
+  }
+
+  /* pečenja istog kupca (isto ime) stoje zajedno, na mjestu njegovog prvog upisa u listi */
+  function grupisi(rows){
+    var idx = {}, out = [];
+    rows.forEach(function(o){
+      var k = kupacKey(o.ime);
+      if (!k) { out.push([o]); return; }
+      if (idx[k] == null) { idx[k] = out.length; out.push([o]); }
+      else out[idx[k]].push(o);
+    });
+    return out;
+  }
+  function grupaHtml(g){
+    if (g.length < 2) return rowHtml(g[0]);
+    g = g.slice().sort(function(a, b){ return (Number(a.broj) || 0) - (Number(b.broj) || 0) || sortRows(a, b); });
+    var pre = g.filter(function(o){ return o.preuzeto; }).length;
+    var info = g.length + ' pečenja · br. ' + g.map(function(o){ return o.broj; }).join(', ') +
+      (pre ? ' · preuzeto ' + (pre === g.length ? 'sve' : pre + ' od ' + g.length) : '');
+    return '<li class="grp' + (pre === g.length ? ' gdone' : '') + '"><div class="ghead"><b>' + esc(g[0].ime) + '</b><span>' + esc(info) + '</span></div>' +
+      '<ul>' + g.map(function(o){ return rowHtml(o); }).join('') + '</ul></li>';
   }
 
   /* kad je pečenje potrebno: najavljeni dolazak, a bez njega trenutak upisa */
