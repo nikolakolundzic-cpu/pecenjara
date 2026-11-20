@@ -229,6 +229,7 @@
   function kidTag(o){
     var m = kidMode(o);
     if (m === 'ne') return '<span class="tag r">Bez kidanja</span>';
+    if (!ro()) return '';   /* dugme Označi iskidano / ✓ Iskidano već to pokazuje */
     if (o.iskidano) return '<span class="tag ok">✓ Iskidano</span>';
     return '<span class="tag d">Za kidanje</span>';
   }
@@ -524,7 +525,8 @@
     var pob = g.slice().sort(function(a, b){ return (Number(a.broj) || 0) - (Number(b.broj) || 0); });
     var info = g.length + ' pečenja · br. ' + pob.map(function(o){ return o.broj; }).join(', ') +
       (pre ? ' · preuzeto ' + (pre === g.length ? 'sve' : pre + ' od ' + g.length) : '');
-    return '<li class="grp' + (pre === g.length ? ' gdone' : '') + '"><div class="ghead"><b>' + esc(pob[0].ime) + '</b><span>' + esc(info) + '</span></div>' +
+    var isto = g.every(function(o){ return o.ime === g[0].ime; });
+    return '<li class="grp' + (pre === g.length ? ' gdone' : '') + (isto ? ' isto' : '') + '"><div class="ghead"><b>' + esc(pob[0].ime) + '</b><span>' + esc(info) + '</span></div>' +
       '<ul>' + g.map(function(o){ var h = rowHtml(o); return hits && hits[o.id] ? h.replace('<li class="row', '<li class="row hit') : h; }).join('') + '</ul></li>';
   }
 

@@ -734,6 +734,13 @@ html.big .stub-n.n3{font-size:34px}
 /* Dodaj / Sačuvaj izmjene: tekst uvijek u jednom redu unutar dugmeta */
 .actions #submit{flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 14px; font-size:clamp(17px, 5.2vw, 22px)}
 .actions #cancel{flex:0 0 auto; padding:0 16px}
+/* vizuelno sređivanje */
+.stub-n.n3{font-size:25px; letter-spacing:-.04em}
+html.big .stub-n.n3{font-size:30px}
+.grp.isto .row .name{display:none}            /* ime već piše u zaglavlju grupe */
+.grp.isto .row .nm:empty{display:none}
+.flabel{flex-basis:100%; margin:4px 0 -2px 2px; font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+html.gost .flabel{display:none}
 </style>
 
 </head>
@@ -892,7 +899,7 @@ html.big .stub-n.n3{font-size:34px}
 
     <div class="search">
       <label class="l" for="q">Pretraga po broju ili imenu kupca</label>
-      <div class="qrow"><span class="qwrap"><svg class="qico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2.6" fill="none"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg><input class="field" id="q" type="search" inputmode="numeric" placeholder="npr. 7 ili Marko" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="qx" id="qx" aria-label="Obriši pretragu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button></span><button type="button" class="qkb" id="qkb" aria-label="Promijeni tastaturu">abc</button></div>
+      <div class="qrow"><span class="qwrap"><svg class="qico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2.6" fill="none"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg><input class="field" id="q" type="search" inputmode="numeric" placeholder="Broj ili ime" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="qx" id="qx" aria-label="Obriši pretragu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button></span><button type="button" class="qkb" id="qkb" aria-label="Promijeni tastaturu">abc</button></div>
     </div>
 
     <div class="filterwrap">
@@ -908,6 +915,7 @@ html.big .stub-n.n3{font-size:34px}
     </div>
 
     <div class="filters" id="kfilters" role="group" aria-label="Filter kidanja">
+      <span class="flabel" aria-hidden="true">Kidanje</span>
       <button class="chip" type="button" data-kf="ceka" aria-pressed="false">Red za kidanje</button>
       <button class="chip" type="button" data-kf="iskidano" aria-pressed="false">Iskidano</button>
       <button class="chip" type="button" data-kf="bez" aria-pressed="false">Bez kidanja <b id="kfBez">0</b></button>
@@ -1112,7 +1120,7 @@ html.big .stub-n.n3{font-size:34px}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="config.js?v=42"></script>
-<script src="shim.js?v=42"></script>
+<script src="config.js?v=43"></script>
+<script src="shim.js?v=43"></script>
 </body>
 </html>
