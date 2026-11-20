@@ -1490,8 +1490,7 @@
     renderSum(cur);
     $('sesName').textContent = cur ? cur.ime : 'Nema događaja';
     $('sesMeta').textContent = !cur ? 'Počni prvi događaj da možeš upisivati.'
-      : (cur.virtual ? 'Stari upisi bez događaja · ' + sesCount(cur.id) + ' upisa'
-        : 'Počeo ' + fmtWhen(cur.kreirano) + ' · ' + upisa(sesCount(cur.id)));
+      : (cur.virtual ? 'Stari upisi bez događaja' : 'Počeo ' + fmtWhen(cur.kreirano));
     var old = !!(cur && nw && cur.id !== nw.id);
     $('sesOld').hidden = !old;
     if (old) $('sesOldText').textContent = 'Gledaš stariji događaj. Novi upisi idu u njega. Aktuelni događaj je „' + nw.ime + '“.';
