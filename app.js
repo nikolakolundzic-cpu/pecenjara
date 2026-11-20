@@ -435,9 +435,17 @@
       if (S.kfilter === 'iskidano') return kidMode(o) !== 'ne' && !!o.iskidano;
       if (S.kfilter === 'bez') return kidMode(o) === 'ne';
       return true;
-    }).sort(function(a, b){
+    });
+    /* pretraga: uz pronađeno pečenje prikaži i ostala pečenja istog kupca */
+    var hits = null;
+    if (q && rows.length) {
+      hits = {}; var kk = {};
+      rows.forEach(function(o){ hits[o.id] = 1; var k = kupacKey(o.ime); if (k) kk[k] = 1; });
+      day.forEach(function(o){ if (!hits[o.id] && kk[kupacKey(o.ime)]) rows.push(o); });
+    }
+    rows.sort(function(a, b){
       if (/^\d+$/.test(nq)) {
-        var ea = String(a.broj) === nq ? 0 : 1, eb = String(b.broj) === nq ? 0 : 1;
+        var ea = String(a.broj) === nq && hits[a.id] ? 0 : 1, eb = String(b.broj) === nq && hits[b.id] ? 0 : 1;
         if (ea !== eb) return ea - eb;
         if (!!a.preuzeto !== !!b.preuzeto) return a.preuzeto ? 1 : -1;
       }
@@ -488,7 +496,7 @@
       html = '<li class="hsum redkid"><b>Red za kidanje.</b> Prvo ono što je najranije potrebno: po vremenu dolaska kupca, a gdje vrijeme nije upisano, po redu upisa.</li>' +
         rows.map(function(o, i){ return rowHtml(o, i + 1); }).join('');
     } else {
-      html = grupisi(rows).map(grupaHtml).join('');
+      html = grupisi(rows).map(function(g){ return grupaHtml(g, hits); }).join('');
     }
     setHTML($('list2'), html);
   }
@@ -504,14 +512,15 @@
     });
     return out;
   }
-  function grupaHtml(g){
+  function grupaHtml(g, hits){
     if (g.length < 2) return rowHtml(g[0]);
     g = g.slice().sort(function(a, b){ return (Number(a.broj) || 0) - (Number(b.broj) || 0) || sortRows(a, b); });
     var pre = g.filter(function(o){ return o.preuzeto; }).length;
+    if (hits && g.every(function(o){ return hits[o.id]; })) hits = null;   // sve pronađeno: ništa posebno ne ističi
     var info = g.length + ' pečenja · br. ' + g.map(function(o){ return o.broj; }).join(', ') +
       (pre ? ' · preuzeto ' + (pre === g.length ? 'sve' : pre + ' od ' + g.length) : '');
     return '<li class="grp' + (pre === g.length ? ' gdone' : '') + '"><div class="ghead"><b>' + esc(g[0].ime) + '</b><span>' + esc(info) + '</span></div>' +
-      '<ul>' + g.map(function(o){ return rowHtml(o); }).join('') + '</ul></li>';
+      '<ul>' + g.map(function(o){ var h = rowHtml(o); return hits && hits[o.id] ? h.replace('<li class="row', '<li class="row hit') : h; }).join('') + '</ul></li>';
   }
 
   /* kad je pečenje potrebno: najavljeni dolazak, a bez njega trenutak upisa */
