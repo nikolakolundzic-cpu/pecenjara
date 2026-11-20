@@ -378,7 +378,7 @@
     $('cJ').textContent = cj; $('cP').textContent = cp; $('cD').textContent = cd; $('cW').textContent = cw;
     $('cU').textContent = day.length; $('cPr').textContent = day.length - cw;
     var csx = curSession(); $('stanjeDog').textContent = csx && !csx.virtual ? csx.ime : '';
-    $('fSve').textContent = day.length; $('fJ').textContent = cj; $('fP').textContent = cp; $('fD').textContent = cd; $('fW').textContent = cw; $('fPr').textContent = day.length - cw;
+    $('fJ').textContent = cj; $('fP').textContent = cp; $('fD').textContent = cd; $('fW').textContent = cw; $('fPr').textContent = day.length - cw;
 
     Array.prototype.forEach.call($('filters').querySelectorAll('.chip'), function(b){
       b.setAttribute('aria-pressed', String(b.getAttribute('data-f') === S.filter && (b.getAttribute('data-f') !== 'sve' || S.kfilter === 'sve')));
