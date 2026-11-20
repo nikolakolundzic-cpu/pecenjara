@@ -703,6 +703,19 @@ html.gost .tally, html.gost #stanjeBtn, html.gost #navN, html.gost .chip b, html
 .stanjebox .tally dd{font-size:32px}
 .stanjebox #stanjeZatvori{margin-top:8px; height:50px}
 @media (max-width:380px){ .stanjebtn span{display:none} .stanjebtn{padding:0 10px} }
+
+/* Pretraga: izdvojen okvir */
+.search{position:relative; padding:14px 14px 16px; border-radius:var(--r);
+  background:linear-gradient(160deg, color-mix(in srgb, var(--zar) 16%, var(--surface)), color-mix(in srgb, var(--zar) 6%, var(--surface)));
+  border:1.5px solid color-mix(in srgb, var(--zar) 45%, transparent);
+  box-shadow:0 10px 28px -14px color-mix(in srgb, var(--zar) 70%, transparent), var(--sh)}
+.search label.l{color:var(--zar2); font-weight:800; font-size:13px; letter-spacing:.08em; text-transform:uppercase}
+.search .field{background:var(--surface); border:2px solid color-mix(in srgb, var(--zar) 55%, var(--line)); padding-left:50px; font-weight:600}
+.search .field:focus{border-color:var(--zar); box-shadow:0 0 0 4px color-mix(in srgb, var(--zar) 22%, transparent); outline:none}
+.qico{position:absolute; left:15px; top:50%; transform:translateY(-50%); width:24px; height:24px; color:var(--zar); pointer-events:none; z-index:1}
+.search .qkb{background:var(--surface); border:2px solid color-mix(in srgb, var(--zar) 55%, var(--line)); color:var(--zar2)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .search label.l, :root:not([data-theme="light"]) .search .qkb{color:var(--zar)} }
+:root[data-theme="dark"] .search label.l, :root[data-theme="dark"] .search .qkb{color:var(--zar)}
 </style>
 
 </head>
@@ -861,7 +874,7 @@ html.gost .tally, html.gost #stanjeBtn, html.gost #navN, html.gost .chip b, html
 
     <div class="search">
       <label class="l" for="q">Pretraga po broju ili imenu kupca</label>
-      <div class="qrow"><span class="qwrap"><input class="field" id="q" type="search" inputmode="numeric" placeholder="npr. 7, Marko ili hodnik" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="qx" id="qx" aria-label="Obriši pretragu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button></span><button type="button" class="qkb" id="qkb" aria-label="Promijeni tastaturu">abc</button></div>
+      <div class="qrow"><span class="qwrap"><svg class="qico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2.6" fill="none"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg><input class="field" id="q" type="search" inputmode="numeric" placeholder="npr. 7 ili Marko" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="qx" id="qx" aria-label="Obriši pretragu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button></span><button type="button" class="qkb" id="qkb" aria-label="Promijeni tastaturu">abc</button></div>
     </div>
 
     <div class="filterwrap">
@@ -1081,7 +1094,7 @@ html.gost .tally, html.gost #stanjeBtn, html.gost #navN, html.gost .chip b, html
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="config.js?v=30"></script>
-<script src="shim.js?v=30"></script>
+<script src="config.js?v=31"></script>
+<script src="shim.js?v=31"></script>
 </body>
 </html>
