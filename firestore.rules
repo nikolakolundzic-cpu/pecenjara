@@ -1,5 +1,4 @@
 rules_version = '2';
-// Verzija pravila: v7 (aplikacija provjerava da li su objavljena najnovija pravila)
 service cloud.firestore {
   match /databases/{database}/documents {
     function prijavljen() { return request.auth != null; }
@@ -11,49 +10,35 @@ service cloud.firestore {
     function jeRadnik() {
       return prijavljen() && exists(/databases/$(database)/documents/osoblje/$(request.auth.uid));
     }
-    // Radnik sa punim radom (gost samo upisuje nova pečenja i gleda).
     function jeAktivan() {
       return jeRadnik() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('uloga', 'radnik') != 'gost';
     }
-    // Radnik kome je vlasnik u Osoblju dozvolio da vidi događaje i istoriju.
     function jePregled() {
       return jeAktivan() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('pregled', false) == true;
     }
-    // Radnik kome je vlasnik u Osoblju dozvolio da mijenja i briše upise.
     function jeUrednik() {
       return jeAktivan() && get(/databases/$(database)/documents/osoblje/$(request.auth.uid)).data.get('urednik', false) == true;
     }
-
-    // Oznaka verzije: aplikacija čita pravila/v7; ako ne smije, objavljena su starija pravila.
     match /pravila/{v} {
       allow get: if v == 'v7';
     }
-
-    // Prvo pokretanje: prvi prijavljeni postavlja sebe za vlasnika, kasnije se ne može promijeniti.
     match /config/vlasnik {
       allow read: if true;
       allow create: if prijavljen() && request.resource.data.uid == request.auth.uid;
       allow update, delete: if false;
     }
-
-    // Imena radnika vide se na ekranu za prijavu. Mijenja ih samo vlasnik.
     match /osoblje/{uid} {
       allow read: if true;
       allow create, update, delete: if jeVlasnik();
     }
-
-    // Pečenja: radnici upisuju i označavaju preuzeto/iskidano/mjesto.
-    // Izmjenu podataka (broj, ime, telefon...) i brisanje radi vlasnik i radnik sa dozvolom.
     match /porudzbine/{id} {
       allow read: if jeRadnik();
-      allow create: if jeRadnik();          // i gost može da upiše novo pečenje
+      allow create: if jeRadnik();
       allow update: if jeVlasnik() || jeUrednik() || (jeAktivan() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(
         ['vrsta', 'broj', 'ime', 'telefon', 'napomena', 'opis', 'sesija', 'kidanje', 'zaKidanje',
          'dolazi', 'dolaziDatum', 'kreirano', 'upisao', 'upisaoIme', 'datum', 'grupa', 'pola']));
       allow delete: if jeVlasnik() || jeUrednik();
     }
-
-    // Istoriju upisuju svi (svaka radnja se bilježi), a čitaju samo vlasnik i radnici sa dozvolom.
     match /istorija/{id} {
       allow create: if jeRadnik();
       allow read, update: if jeVlasnik() || jePregled();
@@ -69,7 +54,7 @@ service cloud.firestore {
       allow write: if jeAktivan();
     }
     match /brojevi/{id} {
-      allow read, write: if jeRadnik();   // kratko zaključavanje broja pri upisu
+      allow read, write: if jeRadnik();
     }
   }
 }
