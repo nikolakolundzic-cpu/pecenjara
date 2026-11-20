@@ -412,7 +412,7 @@
     var pend = kd.filter(isPending).length;
     var done = kd.length - pend;
     $('kW').textContent = pend; $('kD').textContent = done; $('kT').textContent = bez;
-    $('kfCeka').textContent = pend; $('kfBez').textContent = bez;
+    $('kfBez').textContent = bez;
     $('fZad').textContent = Math.min(day.length, 20);
 
     var q = S.q.trim();
