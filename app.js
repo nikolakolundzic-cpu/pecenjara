@@ -255,9 +255,15 @@
     var m = mjFind(o.mjesto);
     return m ? '<span class="tag d">' + m[1] + '</span>' : '';
   }
+  var PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.3" fill="currentColor"/></svg>';
+  function mjestoBtn(o){
+    if (ro() || !mjOpts(o).length) return '';
+    var m = mjFind(o.mjesto), open = S.locOpen === o.id;
+    return '<button class="ghost locbtn' + (m ? ' set' : '') + '" type="button" data-act="locopen" aria-expanded="' + open + '" aria-label="Gdje je pečenje">' + PIN + (m ? '<span>' + esc(m[1]) + '</span>' : '') + '</button>';
+  }
   function mjestoPick(o){
     var opts = mjOpts(o);
-    if (ro() || !opts.length) return '';
+    if (ro() || !opts.length || S.locOpen !== o.id) return '';
     return '<div class="loc" role="group" aria-label="Gdje se nalazi pečenje"><span class="l">Gdje je</span>' + opts.map(function(x){
       return '<button class="locb" type="button" data-act="loc" data-v="' + x[0] + '" aria-pressed="' + (o.mjesto === x[0]) + '">' + x[1] + '</button>';
     }).join('') + '</div>';
@@ -541,9 +547,11 @@
       acts = '<div class="acts">' +
         '<button class="status" type="button" data-act="toggle" aria-pressed="' + done + '">' + (done ? '✓ Preuzeto' : 'Označi preuzeto') + '</button>' +
         (kidMode(o) === 'ne' ? '' : '<button class="status" type="button" data-act="kid" aria-pressed="' + d + '">' + (d ? '✓ Iskidano' : 'Označi iskidano') + '</button>') +
-        (canEditOrders() ? '<span class="acts-r"><button class="ghost" type="button" data-act="edit">Izmijeni</button>' +
-        '<button class="ghost danger' + (conf ? ' confirm' : '') + '" type="button" data-act="del">' + (conf ? 'Potvrdi brisanje' : 'Obriši') + '</button></span>' : '') +
-      '</div>';
+        '<span class="acts-r">' + mjestoBtn(o) +
+        (canEditOrders() ? '<button class="ghost morebtn" type="button" data-act="more" aria-expanded="' + (S.menuId === o.id) + '" aria-label="Još: izmijeni ili obriši">⋯</button>' : '') + '</span>' +
+      '</div>' +
+      (canEditOrders() && S.menuId === o.id ? '<div class="more"><button class="ghost" type="button" data-act="edit">Izmijeni</button>' +
+        '<button class="ghost danger' + (conf ? ' confirm' : '') + '" type="button" data-act="del">' + (conf ? 'Potvrdi brisanje' : 'Obriši') + '</button></div>' : '');
     }
     return '<li class="row t-' + esc(o.vrsta) + (done ? ' done' : '') + '" data-id="' + esc(o.id) + '">' +
       rowTop(o, tags, '') + callHtml(o) + mjestoPick(o) + '<div class="whenrow">' + whenHtml(o) + '</div>' + acts + '</li>';
@@ -854,6 +862,9 @@
     var o = orders.filter(function(x){ return x.id === id; })[0]; if (!o) return;
     var act = btn.getAttribute('data-act');
 
+    if (act === 'more') { S.menuId = S.menuId === id ? null : id; S.confirmId = null; render(); return; }
+    if (act === 'locopen') { S.locOpen = S.locOpen === id ? null : id; render(); return; }
+    if (act === 'edit' || act === 'del' && S.confirmId === id) S.menuId = null;
     if (act === 'toggle') {
       try {
         await updateOrder(id, o.preuzeto
@@ -963,7 +974,7 @@
     setMsg2('');
     try {
       if (act === 'loc') {
-        var v = btn.getAttribute('data-v');
+        var v = btn.getAttribute('data-v'); S.locOpen = null;
         await updateOrder(id, { mjesto: o.mjesto === v ? '' : v });
       } else if (act === 'kid') {
         var now = !o.iskidano;
@@ -986,6 +997,7 @@
     if (!$('kConf').hidden) closeK(null);
     if (!$('callConf').hidden) closeCall();
     if (!$('stanje').hidden) closeStanje();
+    if (S.menuId || S.locOpen) { S.menuId = null; S.locOpen = null; S.confirmId = null; render(); }
   });
 
   /* ---------- poziv uz potvrdu ---------- */
@@ -1678,7 +1690,7 @@
       $('curName').textContent = S.worker;
       setHTML($('curActs'), S.changing
         ? '<span class="ask">Promijeniti radnika?</span><button class="btn" type="button" data-cact="yes">Da, promijeni</button><button class="btn sec" type="button" data-cact="no">Ne</button>'
-        : '<button class="ghost" type="button" data-cact="ask">Promijeni radnika</button>');
+        : '<button class="ghost swapbtn" type="button" data-cact="ask" aria-label="Promijeni radnika" title="Promijeni radnika"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11l-3-3M17 17H6l3 3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Promijeni</span></button>');
     }
     var adm = (S.mode === 'db' && ME.canEdit && !ro()) || S.mode === 'local';
     $('staffAdmin').hidden = !adm || !pruneAllowed();
