@@ -378,7 +378,7 @@
     $('cJ').textContent = cj; $('cP').textContent = cp; $('cD').textContent = cd; $('cW').textContent = cw;
     $('cU').textContent = day.length; $('cPr').textContent = day.length - cw;
     var csx = curSession(); $('stanjeDog').textContent = csx && !csx.virtual ? csx.ime : '';
-    $('fJ').textContent = cj; $('fP').textContent = cp; $('fD').textContent = cd; $('fW').textContent = cw; $('fPr').textContent = day.length - cw;
+    $('fD').textContent = cd;
 
     Array.prototype.forEach.call($('filters').querySelectorAll('.chip'), function(b){
       b.setAttribute('aria-pressed', String(b.getAttribute('data-f') === S.filter && (b.getAttribute('data-f') !== 'sve' || S.kfilter === 'sve')));
@@ -413,7 +413,6 @@
     var done = kd.length - pend;
     $('kW').textContent = pend; $('kD').textContent = done; $('kT').textContent = bez;
     $('kfCeka').textContent = pend; $('kfIsk').textContent = done; $('kfBez').textContent = bez;
-    $('fSat').textContent = day.filter(function(o){ return !o.preuzeto && hasArr(o); }).length;
     $('fZad').textContent = Math.min(day.length, 20);
 
     var q = S.q.trim();
