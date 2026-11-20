@@ -328,7 +328,7 @@
     var note = '';
     if (o.vrsta === 'drugo' && o.opis) note = '<strong>' + esc(o.opis) + '</strong>' + (o.napomena ? ' · ' + esc(o.napomena) : '');
     else if (o.napomena) note = esc(o.napomena);
-    return '<div class="stub"><span class="stub-l">' + esc(TYPE[o.vrsta] || o.vrsta) + '</span><span class="stub-n">' + esc(o.broj) + '</span>' + (o.pola && o.vrsta !== 'drugo' ? '<span class="stub-pola">POLA</span>' : '') + '</div>' +
+    return '<div class="stub"><span class="stub-l">' + esc(TYPE[o.vrsta] || o.vrsta) + '</span><span class="stub-n' + (String(o.broj).length > 2 ? ' n3' : '') + '">' + esc(o.broj) + '</span>' + (o.pola && o.vrsta !== 'drugo' ? '<span class="stub-pola">POLA</span>' : '') + '</div>' +
       '<div class="who"><div class="nm"><p class="name">' + (o.ime ? esc(o.ime) : 'Bez imena') + '</p>' + (tags || '') + '</div>' +
       (note ? '<p class="note">' + note + '</p>' : '') +
       (extra || '') + '</div>';
@@ -514,12 +514,14 @@
   }
   function grupaHtml(g, hits){
     if (g.length < 2) return rowHtml(g[0]);
-    g = g.slice().sort(function(a, b){ return (Number(a.broj) || 0) - (Number(b.broj) || 0) || sortRows(a, b); });
-    var pre = g.filter(function(o){ return o.preuzeto; }).length;
     if (hits && g.every(function(o){ return hits[o.id]; })) hits = null;   // sve pronađeno: ništa posebno ne ističi
-    var info = g.length + ' pečenja · br. ' + g.map(function(o){ return o.broj; }).join(', ') +
+    /* traženo pečenje ide prvo u grupi, ostala po broju */
+    g = g.slice().sort(function(a, b){ return (hits ? (hits[b.id] ? 1 : 0) - (hits[a.id] ? 1 : 0) : 0) || (Number(a.broj) || 0) - (Number(b.broj) || 0) || sortRows(a, b); });
+    var pre = g.filter(function(o){ return o.preuzeto; }).length;
+    var pob = g.slice().sort(function(a, b){ return (Number(a.broj) || 0) - (Number(b.broj) || 0); });
+    var info = g.length + ' pečenja · br. ' + pob.map(function(o){ return o.broj; }).join(', ') +
       (pre ? ' · preuzeto ' + (pre === g.length ? 'sve' : pre + ' od ' + g.length) : '');
-    return '<li class="grp' + (pre === g.length ? ' gdone' : '') + '"><div class="ghead"><b>' + esc(g[0].ime) + '</b><span>' + esc(info) + '</span></div>' +
+    return '<li class="grp' + (pre === g.length ? ' gdone' : '') + '"><div class="ghead"><b>' + esc(pob[0].ime) + '</b><span>' + esc(info) + '</span></div>' +
       '<ul>' + g.map(function(o){ var h = rowHtml(o); return hits && hits[o.id] ? h.replace('<li class="row', '<li class="row hit') : h; }).join('') + '</ul></li>';
   }
 
