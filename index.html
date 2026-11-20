@@ -668,7 +668,7 @@ html.big .tag{font-size:12.5px}
 html.big .when{font-size:14px}
 
 /* gost: upisuje pečenja i gleda listu, bez zbirova i brojeva */
-html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost .hsum{display:none !important}
+html.gost .tally, html.gost #stanjeBtn, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost .hsum{display:none !important}
 
 .notice.warn{border:1px solid var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--surface)); color:var(--ink); font-weight:600; border-radius:var(--r)}
 
@@ -686,6 +686,23 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
 .xrow .xb{flex:1 1 64px; min-width:0}
 .xrow .xpl{display:inline-flex; align-items:center; gap:6px; height:48px; padding:0 10px; border:1px solid var(--line); border-radius:var(--r-s); background:var(--field); font-weight:700; flex:0 0 auto}
 .xrow .xpl input{width:20px; height:20px; accent-color:var(--zar)}
+
+/* Stanje: zbirovi u posebnom prozoru */
+.titlerow{gap:8px}
+.titlerow h1{flex:1 1 auto; min-width:0}
+.stanjebtn{display:inline-flex; align-items:center; gap:6px; height:40px; padding:0 12px; flex:0 0 auto; font-weight:700; font-size:14px;
+  background:var(--surface); border:1px solid var(--line); box-shadow:var(--sh); border-radius:var(--r-s)}
+.stanjebtn svg{width:18px; height:18px; color:var(--zar)}
+.stanjebox{text-align:left; gap:8px; width:min(100%, 480px); max-height:calc(100vh - 32px); overflow:auto}
+.stanjehead{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.stanjehead h2{margin:0; font-family:var(--f-display); font-weight:700; font-size:24px}
+.stanjedog{color:var(--muted); font-weight:600; font-size:14px}
+.stanjel{margin:6px 0 0; font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.stanjebox .tally{box-shadow:none}
+.stanjebox .tally.two{grid-template-columns:1fr 1fr}
+.stanjebox .tally dd{font-size:32px}
+.stanjebox #stanjeZatvori{margin-top:8px; height:50px}
+@media (max-width:380px){ .stanjebtn span{display:none} .stanjebtn{padding:0 10px} }
 </style>
 
 </head>
@@ -732,6 +749,7 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
   <header style="display:flex; flex-direction:column; gap:12px">
     <div class="titlerow">
       <h1><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3.2-1.2 4.9-2.8 6.6C7.6 10.8 6 12.6 6 15.3 6 18.9 8.7 21.5 12 21.5s6-2.6 6-6.2c0-2.5-1.3-4.3-2.6-5.6-.2 1.6-1 2.7-2.1 3.3.4-3.6-.4-7.6-1.3-9.5z" fill="currentColor"/></svg><span>Evidencija pečenja</span></h1>
+      <button class="ghost stanjebtn" id="stanjeBtn" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg><span>Stanje</span></button>
       <button class="ghost themebtn" id="themeBtn" type="button"></button>
     </div>
     <p class="me" id="meBar" hidden></p>
@@ -763,12 +781,6 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
 
   <!-- ===== Stranica: Upis ===== -->
   <section class="view" id="viewUpis">
-    <dl class="tally four" aria-label="Zbir za ovaj događaj">
-      <div class="c-j"><dt>Jagnjad</dt><dd id="cJ">0</dd></div>
-      <div class="c-p"><dt>Prasad</dt><dd id="cP">0</dd></div>
-      <div class="c-d"><dt>Drugo</dt><dd id="cD">0</dd></div>
-      <div class="c-w"><dt title="Nije preuzeto">Nije preuzeto</dt><dd id="cW">0</dd></div>
-    </dl>
 
     <p class="notice" id="roNote" hidden>Imaš pristup samo za pregled. Ne možeš dodavati ni mijenjati upise.</p>
 
@@ -846,11 +858,6 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
 
   <!-- ===== Stranica: Kidanje ===== -->
   <section class="view" id="viewKidanje" hidden>
-    <dl class="tally" aria-label="Zbir kidanja za ovaj događaj">
-      <div class="c-w kidlink" role="button" tabindex="0" title="Prikaži red za kidanje"><dt>Čeka kidanje ›</dt><dd id="kW">0</dd></div>
-      <div class="c-ok"><dt>Iskidano</dt><dd id="kD">0</dd></div>
-      <div class="c-r"><dt>Bez kidanja</dt><dd id="kT">0</dd></div>
-    </dl>
 
     <div class="search">
       <label class="l" for="q">Pretraga po broju ili imenu kupca</label>
@@ -1022,6 +1029,31 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
 
 <div id="printArea"></div>
 
+<div class="bconf" id="stanje" role="dialog" aria-modal="true" aria-labelledby="stanjeNaslov" hidden>
+  <div class="bcbox stanjebox">
+    <div class="stanjehead"><h2 id="stanjeNaslov">Stanje</h2><span class="stanjedog" id="stanjeDog"></span></div>
+    <p class="stanjel">Pečenja</p>
+    <dl class="tally four" aria-label="Pečenja u događaju">
+      <div class="c-j"><dt>Jagnjad</dt><dd id="cJ">0</dd></div>
+      <div class="c-p"><dt>Prasad</dt><dd id="cP">0</dd></div>
+      <div class="c-d"><dt>Drugo</dt><dd id="cD">0</dd></div>
+      <div><dt>Ukupno</dt><dd id="cU">0</dd></div>
+    </dl>
+    <p class="stanjel">Preuzimanje</p>
+    <dl class="tally two" aria-label="Preuzimanje">
+      <div class="c-w"><dt>Nije preuzeto</dt><dd id="cW">0</dd></div>
+      <div class="c-ok"><dt>Preuzeto</dt><dd id="cPr">0</dd></div>
+    </dl>
+    <p class="stanjel">Kidanje</p>
+    <dl class="tally" aria-label="Kidanje">
+      <div class="c-w kidlink" role="button" tabindex="0" title="Prikaži red za kidanje"><dt>Čeka kidanje ›</dt><dd id="kW">0</dd></div>
+      <div class="c-ok"><dt>Iskidano</dt><dd id="kD">0</dd></div>
+      <div class="c-r"><dt>Bez kidanja</dt><dd id="kT">0</dd></div>
+    </dl>
+    <button class="btn sec" id="stanjeZatvori" type="button">Zatvori</button>
+  </div>
+</div>
+
 <div class="bconf" id="callConf" role="alertdialog" aria-modal="true" aria-labelledby="callQ" hidden>
   <div class="bcbox">
     <p class="bcq" id="callQ">Pozvati kupca?</p>
@@ -1049,7 +1081,7 @@ html.gost .tally, html.gost #navN, html.gost .chip b, html.gost .sesm, html.gost
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="config.js?v=29"></script>
-<script src="shim.js?v=29"></script>
+<script src="config.js?v=30"></script>
+<script src="shim.js?v=30"></script>
 </body>
 </html>

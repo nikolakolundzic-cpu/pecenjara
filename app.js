@@ -376,6 +376,8 @@
     var cd = day.filter(function(o){ return o.vrsta === 'drugo'; }).length;
     var cw = day.filter(function(o){ return !o.preuzeto; }).length;
     $('cJ').textContent = cj; $('cP').textContent = cp; $('cD').textContent = cd; $('cW').textContent = cw;
+    $('cU').textContent = day.length; $('cPr').textContent = day.length - cw;
+    var csx = curSession(); $('stanjeDog').textContent = csx && !csx.virtual ? csx.ime : '';
     $('fSve').textContent = day.length; $('fJ').textContent = cj; $('fP').textContent = cp; $('fD').textContent = cd; $('fW').textContent = cw; $('fPr').textContent = day.length - cw;
 
     Array.prototype.forEach.call($('filters').querySelectorAll('.chip'), function(b){
@@ -875,7 +877,14 @@
     renderKidanje(dayOrders());
     try { $('q').focus(); } catch(e){}
   });
+  /* ---------- Stanje: zbirovi u posebnom prozoru ---------- */
+  function openStanje(){ if (ro()) return; render(); $('stanje').hidden = false; try { $('stanjeZatvori').focus(); } catch(e){} }
+  function closeStanje(){ $('stanje').hidden = true; }
+  $('stanjeBtn').addEventListener('click', openStanje);
+  $('stanjeZatvori').addEventListener('click', closeStanje);
+  $('stanje').addEventListener('click', function(e){ if (e.target === $('stanje')) closeStanje(); });
   $('kW').parentNode.addEventListener('click', function(){
+    closeStanje(); go('kidanje');
     S.kfilter = 'ceka'; S.filter = 'sve'; if (S.q) { S.q = ''; $('q').value = ''; } render();
     try { $('list2').scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch(e){}
   });
@@ -940,6 +949,7 @@
     if (e.key !== 'Escape') return;
     if (!$('kConf').hidden) closeK(null);
     if (!$('callConf').hidden) closeCall();
+    if (!$('stanje').hidden) closeStanje();
   });
 
   /* ---------- poziv uz potvrdu ---------- */
